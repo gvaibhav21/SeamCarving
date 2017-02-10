@@ -1,1 +1,0 @@
-cmd_Release/obj.target/seamcarving.so := g++ -shared -pthread -rdynamic -m64  -Wl,-soname=seamcarving.so -o Release/obj.target/seamcarving.so -Wl,--whole-archive ./Release/obj.target/libseamcarving/../seamcarvinglib/myseamcarving.o ./Release/obj.target/libseamcarving/../seamcarvinglib/exchange.o ./Release/obj.target/libseamcarving/seamcarvingapi.o -Wl,--no-whole-archive 

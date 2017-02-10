@@ -3,7 +3,7 @@
     {
       "target_name": "libseamcarving",
       "type": "shared_library",
-      "sources": [ "../seamcarvinglib/myseamcarving.h", "../seamcarvinglib/myseamcarving.cpp", "../seamcarvinglib/exchange.cpp", "seamcarvingapi.cpp"],
+      "sources": ["../seamcarvinglib/myseamcarving.h","../seamcarvinglib/myseamcarving.cpp","../seamcarvinglib/exchange.cpp","../seamcarvingapi.cpp"],
       "cflags": ["-Wall", "-std=c++11"],
       "include_dirs" : ['../seamcarvinglib'],
       "conditions": [

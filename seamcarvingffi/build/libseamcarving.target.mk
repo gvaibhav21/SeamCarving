@@ -83,7 +83,7 @@ INCS_Release := \
 OBJS := \
 	$(obj).target/$(TARGET)/../seamcarvinglib/myseamcarving.o \
 	$(obj).target/$(TARGET)/../seamcarvinglib/exchange.o \
-	$(obj).target/$(TARGET)/seamcarvingapi.o
+	$(obj).target/$(TARGET)/../seamcarvingapi.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
