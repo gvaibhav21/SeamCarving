@@ -7,14 +7,15 @@ using namespace cv;
 using namespace std;
 
 #define debug(mark) printf("check%d\n", mark)
-
+#define PENALTY 100.0
 class pixel
 {
 public:
-    int val[3];
+    double val[3];
     int top, bottom, right, left;
     bool updated;
     double energy;
+    double penalty;
     pixel(int b = 0, int g = 0, int r = 0, int top = -1, int bottom = -1, int right = -1,
         int left = -1, bool updated = false)
     {
@@ -26,6 +27,7 @@ public:
         this->right = right;
         this->left = left;
         this->updated = updated;
+        penalty = 0;
     }
     pixel& operator=(pixel p)
     {
@@ -38,6 +40,7 @@ public:
         left = p.left;
         updated = p.updated;
         energy = p.energy;
+        penalty = p.penalty;
         return *this;
     }
 };
@@ -137,7 +140,7 @@ public:
     double getEnergy(int id)
     {
         if (pixelarray[id].updated)
-            return pixelarray[id].energy;
+            return pixelarray[id].energy+pixelarray[id].penalty;
         pixelarray[id].updated = true;
         int cnt = 0;
         double Sum = 0;
@@ -161,7 +164,31 @@ public:
             cnt++;
             Sum += getDiff(id, pixelarray[id].left);
         }
-        return pixelarray[id].energy = Sum / cnt;
+        pixelarray[id].energy = Sum / cnt;
+        return pixelarray[id].energy + pixelarray[id].penalty;
+    }
+    void adjust(int x,int y)
+    {
+        pixelarray[x].penalty += PENALTY;
+        if(y==-1)   return;
+        for(int i=0;i<3;i++)
+            pixelarray[x].val[i] = (pixelarray[x].val[i]+pixelarray[y].val[i])/2;
+        if(pixelarray[x].top!=-1)       pixelarray[pixelarray[x].top].updated=false;
+        if(pixelarray[x].bottom!=-1)    pixelarray[pixelarray[x].bottom].updated=false;
+        if(pixelarray[x].left!=-1)      pixelarray[pixelarray[x].left].updated=false;
+        if(pixelarray[x].right!=-1)     pixelarray[pixelarray[x].right].updated=false;
+        
+    }
+    void modify(int id,int dir)
+    {
+        if(dir==0)
+            adjust(id,pixelarray[id].top);
+        else if(dir==1)
+            adjust(id,pixelarray[id].right);
+        else if(dir==2)
+            adjust(id,pixelarray[id].bottom);
+        else if(dir==3)
+            adjust(id,pixelarray[id].left);
     }
 };
 
@@ -519,6 +546,7 @@ graph insert_h_seam(graph& g)
     New.pixelarray.push_back(
         pixel(New.pixelarray[cur].val[0], New.pixelarray[cur].val[1], New.pixelarray[cur].val[2]));
     New.pixelarray_size++;
+    New.pixelarray[index].updated = false;
     int Top = New.pixelarray[cur].top, Bottom = New.pixelarray[cur].bottom;
     // cout << "top=" << Top << " bottom= " << Bottom << "\n";
     for (i = m - 1; i >= 0; --i)
@@ -537,7 +565,8 @@ graph insert_h_seam(graph& g)
         }
         New.pixelarray[index].top = cur;
         New.pixelarray[index].bottom = Bottom;
-
+        New.pixelarray[index].updated = false;
+        
         if (!i)
         {
             if (cur == New.topleft)
@@ -562,7 +591,13 @@ graph insert_h_seam(graph& g)
             New.pixelarray_size++;
 
             New.pixelarray[index].left = index + 1;
+            New.pixelarray[index].updated = false;
+
             New.pixelarray[index + 1].right = index;
+            New.pixelarray[index].updated = false;
+
+            New.modify(prevcur,0);
+            New.modify(index,2);
             index++;
         }
         else if (pos[i] > pos[i - 1])
@@ -584,12 +619,22 @@ graph insert_h_seam(graph& g)
                 Bottom = New.pixelarray[cur].bottom;
                 New.pixelarray.push_back(pixel(New.pixelarray[cur].val[0],
                     New.pixelarray[cur].val[1], New.pixelarray[cur].val[2]));
+                
                 New.pixelarray[prevcur].left = index + 1;
+                New.pixelarray[prevcur].updated = false;
+                
                 New.pixelarray[index + 1].right = prevcur;
+                New.pixelarray[index + 1].updated = false;
+                
                 New.pixelarray_size++;
+                
                 New.pixelarray[index].left = nextleft;
+                New.pixelarray[index].updated = false;
 
                 New.pixelarray[nextleft].right = index;
+                New.pixelarray[nextleft].updated = false;
+                New.modify(prevcur,0);
+                New.modify(index,2);
                 index++;
             }
             catch (Exception e)
@@ -599,6 +644,7 @@ graph insert_h_seam(graph& g)
         }
         else
         {
+            int prevcur = cur;
             // cout << "here4" << endl;
             cur = New.pixelarray[New.pixelarray[cur].left].bottom;
             int nextleft = cur;
@@ -609,9 +655,18 @@ graph insert_h_seam(graph& g)
                 New.pixelarray[cur].val[2]));
             New.pixelarray_size++;
             New.pixelarray[index + 1].right = prevbot;
+            New.pixelarray[index + 1].updated = false;
+            
             New.pixelarray[prevbot].left = index + 1;
+            New.pixelarray[prevbot].updated = false;
+            
             New.pixelarray[index].left = nextleft;
+            New.pixelarray[index].updated = false;
+
             New.pixelarray[nextleft].right = index;
+            New.pixelarray[nextleft].updated = false;
+            New.modify(prevcur,0);
+            New.modify(index,2);
             index++;
         }
     }
@@ -702,6 +757,8 @@ graph insert_v_seam(graph& g)
     New.pixelarray.push_back(
         pixel(New.pixelarray[cur].val[0], New.pixelarray[cur].val[1], New.pixelarray[cur].val[2]));
     New.pixelarray_size++;
+    New.pixelarray[index].updated = false;
+
     int Left = New.pixelarray[cur].left, Right = New.pixelarray[cur].right;
     // cout << "left=" << Left << " right= " << Right << "\n";
     for (i = n - 1; i >= 0; --i)
@@ -725,6 +782,7 @@ graph insert_v_seam(graph& g)
 
         New.pixelarray[index].left = cur;
         New.pixelarray[index].right = Right;
+        New.pixelarray[index].updated = false;
 
         if (!i)
         {
@@ -756,7 +814,11 @@ graph insert_v_seam(graph& g)
             //debug(200);
             New.pixelarray_size++;
             New.pixelarray[index].top = index + 1;
+            New.pixelarray[index].updated = false;
             New.pixelarray[index + 1].bottom = index;
+            New.pixelarray[index + 1].updated = false;
+            New.modify(prevcur,3);
+            New.modify(index,1);
             index++;
         }
         else if (pos[i] > pos[i - 1])
@@ -780,11 +842,20 @@ graph insert_v_seam(graph& g)
                 New.pixelarray.push_back(pixel(New.pixelarray[cur].val[0],
                     New.pixelarray[cur].val[1], New.pixelarray[cur].val[2]));
                 New.pixelarray[prevcur].top = index + 1;
+                New.pixelarray[prevcur].updated = false;
+                
                 New.pixelarray[index + 1].bottom = prevcur;
+                New.pixelarray[index + 1].updated = false;
+
                 New.pixelarray_size++;
                 New.pixelarray[index].top = nextleft;
+                New.pixelarray[index].updated = false;
 
                 New.pixelarray[nextleft].bottom = index;
+                New.pixelarray[nextleft].updated = false;
+                New.modify(prevcur,3);
+                New.modify(index,1);
+            
                 index++;
             }
             catch (Exception e)
@@ -794,6 +865,7 @@ graph insert_v_seam(graph& g)
         }
         else
         {
+            int prevcur = cur;
             // cout << "here4" << endl;
             cur = New.pixelarray[New.pixelarray[cur].top].right;
             int nextleft = cur;
@@ -804,9 +876,20 @@ graph insert_v_seam(graph& g)
                 New.pixelarray[cur].val[2]));
             New.pixelarray_size++;
             New.pixelarray[index + 1].bottom = prevbot;
+            New.pixelarray[index + 1].updated = false;
+
             New.pixelarray[prevbot].top = index + 1;
+            New.pixelarray[prevbot].updated = false;
+
+
             New.pixelarray[index].top = nextleft;
+            New.pixelarray[index].updated = false;
+
             New.pixelarray[nextleft].bottom = index;
+            New.pixelarray[nextleft].updated = false;
+            New.modify(prevcur,3);
+            New.modify(index,1);
+            
             index++;
         }
     }
@@ -872,7 +955,7 @@ void upscale(const Mat& image, double r_height, double r_width)
 int main()
 {
     // cout<<"starting!"<<endl;
-    Mat image = imread("../TestImages/photo.jpg", CV_LOAD_IMAGE_COLOR);
+    Mat image = imread("../TestImages/group2.jpg", CV_LOAD_IMAGE_COLOR);
     if (!image.data) // Check for invalid input
     {
         cout << "Could not open or find the image" << std::endl;
@@ -882,7 +965,7 @@ int main()
     imshow("original image window!!!", image);
     // waitKey(0);
     graph g(image);
-    upscale(image, 1.5, 1.9);
+    upscale(image, 1.0, 1.3);
     g.convertgraphtoimage();
     
     return 0;
