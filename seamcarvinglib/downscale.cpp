@@ -2,6 +2,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <iostream>
 #include <cstdio>
+
 using namespace cv;
 using namespace std;
 
@@ -170,7 +171,7 @@ int pos[1010];
 
 int getptr(graph& g, int x, int y)
 {
-    cout << "here!" << endl;
+    // cout << "here!" << endl;
     int cur = g.topleft;
     while (x--)
         cur = g.pixelarray[cur].bottom;
@@ -283,7 +284,7 @@ graph remove_v_seam(graph& g)
             cur = New.pixelarray[New.pixelarray[cur].top].right;
         }
     }
-    cout << New.height << ' ' << New.width << '\n';
+    // cout << New.height << ' ' << New.width << '\n';
     // New.convertgraphtoimage();
     return New;
 }
@@ -392,7 +393,7 @@ graph remove_h_seam(graph& g)
             cur = New.pixelarray[New.pixelarray[cur].left].bottom;
         }
     }
-    cout << New.height << ' ' << New.width << '\n';
+    // cout << New.height << ' ' << New.width << '\n';
     return New;
 }
 
@@ -450,7 +451,7 @@ void downscale(const Mat& image, double r_height, double r_width)
 }
 graph insert_h_seam(graph& g)
 {
-    cout << "inserting horiz seam!" << endl;
+    // cout << "inserting horiz seam!" << endl;
     int m = g.width, n = g.height, i, j;
 
     int cur = g.topleft, rowstart = g.topleft;
@@ -460,14 +461,14 @@ graph insert_h_seam(graph& g)
         cur = rowstart;
         for (j = 0; j < m; j++)
         {
-            cout << "nextcur: " << cur;
+            // cout << "nextcur: " << cur;
 
             pixel_energy[i][j] = g.getEnergy(cur);
             cur = g.pixelarray[cur].right;
         }
         rowstart = g.pixelarray[rowstart].bottom;
     }
-    cout << "calculating dp " << endl;
+    // cout << "calculating dp " << endl;
     for (i = 0; i < n; i++)
         inner_dp[i][0] = pixel_energy[i][0];
     for (j = 1; j < m; j++)
@@ -511,7 +512,7 @@ graph insert_h_seam(graph& g)
     graph New;
     New = g;
     New.height = New.height + 1;
-    cout << "I am here!" << endl;
+    // cout << "I am here!" << endl;
     cur = getptr(New, pos[m - 1], m - 1);
 
     int index = New.pixelarray_size;
@@ -519,12 +520,12 @@ graph insert_h_seam(graph& g)
         pixel(New.pixelarray[cur].val[0], New.pixelarray[cur].val[1], New.pixelarray[cur].val[2]));
     New.pixelarray_size++;
     int Top = New.pixelarray[cur].top, Bottom = New.pixelarray[cur].bottom;
-    cout << "top=" << Top << " bottom= " << Bottom << "\n";
+    // cout << "top=" << Top << " bottom= " << Bottom << "\n";
     for (i = m - 1; i >= 0; --i)
     {
         // cout<<"cur: "<<cur<<endl;
         // cout<<"index: "<<index<<" matrix last index: "<<New.pixelarray.size()-1;
-        cout << "here1" << endl;
+        // cout << "here1" << endl;
 
         New.pixelarray[cur].bottom = index;
         New.pixelarray[cur].updated = false;
@@ -534,7 +535,7 @@ graph insert_h_seam(graph& g)
             New.pixelarray[Bottom].top = index;
             New.pixelarray[Bottom].updated = false;
         }
-        New.pixelarray[index].top = Top;
+        New.pixelarray[index].top = cur;
         New.pixelarray[index].bottom = Bottom;
 
         if (!i)
@@ -549,7 +550,7 @@ graph insert_h_seam(graph& g)
         }
         if (pos[i] == pos[i - 1])
         {
-            cout << "here2" << endl;
+            // cout << "here2" << endl;
 
             int prevcur = cur;
             cur = New.pixelarray[cur].left;
@@ -566,19 +567,19 @@ graph insert_h_seam(graph& g)
         }
         else if (pos[i] > pos[i - 1])
         {
-            cout << "here3" << endl;
+            // cout << "here3" << endl;
             try
             {
                 int prevcur = cur;
-                cout << "oldcur" << cur << endl;
+                // cout << "oldcur" << cur << endl;
 
                 int nextleft = New.pixelarray[cur].left;
-                cout << "nextleft" << nextleft << endl;
+                // cout << "nextleft" << nextleft << endl;
                 cur = New.pixelarray[New.pixelarray[cur].left].top;
-                cout << "i: " << i << endl;
-                cout << "posi" << pos[i] << "posi-1" << pos[i - 1] << endl;
-                cout << "newcur" << cur << endl;
-                cout << "top" << Top << "Bottom" << Bottom;
+                // cout << "i: " << i << endl;
+                // cout << "posi" << pos[i] << "posi-1" << pos[i - 1] << endl;
+                // cout << "newcur" << cur << endl;
+                // cout << "top" << Top << "Bottom" << Bottom;
                 Top = New.pixelarray[cur].top;
                 Bottom = New.pixelarray[cur].bottom;
                 New.pixelarray.push_back(pixel(New.pixelarray[cur].val[0],
@@ -598,7 +599,7 @@ graph insert_h_seam(graph& g)
         }
         else
         {
-            cout << "here4" << endl;
+            // cout << "here4" << endl;
             cur = New.pixelarray[New.pixelarray[cur].left].bottom;
             int nextleft = cur;
             int prevbot = Bottom;
@@ -615,7 +616,7 @@ graph insert_h_seam(graph& g)
         }
     }
     cout << New.height << ' ' << New.width << '\n';
-    New.convertgraphtoimage();
+    // New.convertgraphtoimage();
     return New;
 }
 // bool checkgraphokay(graph &g)
@@ -631,8 +632,8 @@ graph insert_h_seam(graph& g)
 // 		}
 // 	}
 // }
-graph insert_v_seam(graph& g)
 
+graph insert_v_seam(graph& g)
 {
     int m = g.width, n = g.height, i, j;
 
@@ -680,6 +681,8 @@ graph insert_v_seam(graph& g)
         }
     }
 
+
+
     cur = minpos;
     pos[n - 1] = minpos;
     for (i = n - 2; i >= 0; --i)
@@ -691,112 +694,125 @@ graph insert_v_seam(graph& g)
     graph New;
     New = g;
     New.width = New.width + 1;
-    cur = getptr(New, n - 1, pos[n - 1]);
-    int Left = New.pixelarray[cur].left, Right = New.pixelarray[cur].right;
-    // create new pixel at index
+    cur = getptr(New, n-1,pos[n - 1]);
+
+    //debug(1);
+
     int index = New.pixelarray_size;
     New.pixelarray.push_back(
         pixel(New.pixelarray[cur].val[0], New.pixelarray[cur].val[1], New.pixelarray[cur].val[2]));
     New.pixelarray_size++;
-
+    int Left = New.pixelarray[cur].left, Right = New.pixelarray[cur].right;
+    // cout << "left=" << Left << " right= " << Right << "\n";
     for (i = n - 1; i >= 0; --i)
     {
-        cout << "here1" << endl;
+        // cout<<"cur: "<<cur<<endl;
+        // cout<<"index: "<<index<<" matrix last index: "<<New.pixelarray.size()-1;
+        // cout << "here1" << endl;
+
+        //debug(2);
+
         New.pixelarray[cur].right = index;
-        New.pixelarray[Left].updated = false;
+        New.pixelarray[cur].updated = false;
 
         if (Right != -1)
         {
             New.pixelarray[Right].left = index;
             New.pixelarray[Right].updated = false;
         }
-        New.pixelarray[index].left = Left;
+
+        //debug(3);
+
+        New.pixelarray[index].left = cur;
         New.pixelarray[index].right = Right;
 
         if (!i)
         {
             if (cur == New.topleft)
-                New.topleft = New.pixelarray[cur].right;
+            {
+                // cout<<"true!"<<endl;
+
+                // New.topleft = New.pixelarray[cur].right;
+            }
             break;
         }
+
+        //debug(4);
+
         if (pos[i] == pos[i - 1])
         {
-            cout << "here2" << endl;
-
+            // cout << "here2" << endl;
+            //debug(5);
+            int prevcur = cur;
             cur = New.pixelarray[cur].top;
+            // make new pixel & set the corresponding bottom for it
+            //debug(1000);
             Left = New.pixelarray[cur].left;
+            //debug(2000);
             Right = New.pixelarray[cur].right;
-            // create new pixel at index
-            int next_index = New.pixelarray_size;
+            //debug(100);
             New.pixelarray.push_back(pixel(New.pixelarray[cur].val[0], New.pixelarray[cur].val[1],
                 New.pixelarray[cur].val[2]));
-
+            //debug(200);
             New.pixelarray_size++;
-
-            New.pixelarray[next_index].bottom = index;
-            New.pixelarray[index].top = next_index;
-            index = next_index;
+            New.pixelarray[index].top = index + 1;
+            New.pixelarray[index + 1].bottom = index;
+            index++;
         }
         else if (pos[i] > pos[i - 1])
         {
-            cout << "here3" << endl;
+            //debug(6);
+            // cout << "here3" << endl;
+            try
+            {
+                int prevcur = cur;
+                // cout << "oldcur" << cur << endl;
 
-            int nexttop = New.pixelarray[cur].top;
+                int nextleft = New.pixelarray[cur].top;
+                // cout << "nextleft" << nextleft << endl;
+                cur = New.pixelarray[New.pixelarray[cur].top].left;
+                // cout << "i: " << i << endl;
+                // cout << "posi" << pos[i] << "posi-1" << pos[i - 1] << endl;
+                // cout << "newcur" << cur << endl;
+                // cout << "left" << Left << "Right" << Right;
+                Left = New.pixelarray[cur].left;
+                Right = New.pixelarray[cur].right;
+                New.pixelarray.push_back(pixel(New.pixelarray[cur].val[0],
+                    New.pixelarray[cur].val[1], New.pixelarray[cur].val[2]));
+                New.pixelarray[prevcur].top = index + 1;
+                New.pixelarray[index + 1].bottom = prevcur;
+                New.pixelarray_size++;
+                New.pixelarray[index].top = nextleft;
 
-            cur = New.pixelarray[New.pixelarray[cur].top].left;
-            Left = New.pixelarray[cur].left;
-            Right = New.pixelarray[cur].right;
-            New.pixelarray.push_back(pixel(New.pixelarray[cur].val[0], New.pixelarray[cur].val[1],
-                New.pixelarray[cur].val[2]));
-
-            // int next_index = New.pixelarray_size;
-            New.pixelarray_size++;
-
-            New.pixelarray[index].top = nexttop;
-            New.pixelarray[Left].updated = false;
-
-            New.pixelarray[nexttop].bottom = index;
-            New.pixelarray[Right].updated = false;
-            index++;
+                New.pixelarray[nextleft].bottom = index;
+                index++;
+            }
+            catch (Exception e)
+            {
+                cout << "exception" << e.what() << endl;
+            }
         }
         else
         {
-            cout << "here4" << endl;
-
-            int nexttop = New.pixelarray[New.pixelarray[cur].top].right;
-
+            // cout << "here4" << endl;
             cur = New.pixelarray[New.pixelarray[cur].top].right;
+            int nextleft = cur;
+            int prevbot = Right;
             Left = New.pixelarray[cur].left;
             Right = New.pixelarray[cur].right;
             New.pixelarray.push_back(pixel(New.pixelarray[cur].val[0], New.pixelarray[cur].val[1],
                 New.pixelarray[cur].val[2]));
-
-            // int next_index = New.pixelarray_size;
             New.pixelarray_size++;
-
-            New.pixelarray[index].top = nexttop;
-            New.pixelarray[Left].updated = false;
-            if (nexttop != -1)
-            {
-                New.pixelarray[nexttop].bottom = index;
-                New.pixelarray[Right].updated = false;
-            }
+            New.pixelarray[index + 1].bottom = prevbot;
+            New.pixelarray[prevbot].top = index + 1;
+            New.pixelarray[index].top = nextleft;
+            New.pixelarray[nextleft].bottom = index;
             index++;
-
-            // int Right = New.pixelarray[cur].right, Left = New.pixelarray[cur].top;
-            // New.pixelarray[Right].top = Left;
-            // New.pixelarray[Right].updated = false;
-
-            // New.pixelarray[Left].bottom = Right;
-            // New.pixelarray[Left].updated = false;
-
-            // cur = New.pixelarray[New.pixelarray[cur].top].right;
         }
     }
+    //debug(5);
     cout << New.height << ' ' << New.width << '\n';
-    // checkgraphokay(New);
     // New.convertgraphtoimage();
-
     return New;
 }
 void upscale(const Mat& image, int r, int c)
@@ -856,7 +872,7 @@ void upscale(const Mat& image, double r_height, double r_width)
 int main()
 {
     // cout<<"starting!"<<endl;
-    Mat image = imread("../TestImages/group2.jpg", CV_LOAD_IMAGE_COLOR);
+    Mat image = imread("../TestImages/photo.jpg", CV_LOAD_IMAGE_COLOR);
     if (!image.data) // Check for invalid input
     {
         cout << "Could not open or find the image" << std::endl;
@@ -866,7 +882,7 @@ int main()
     imshow("original image window!!!", image);
     // waitKey(0);
     graph g(image);
-    upscale(image, 1.0, 1.2);
+    upscale(image, 1.5, 1.9);
     g.convertgraphtoimage();
     
     return 0;
