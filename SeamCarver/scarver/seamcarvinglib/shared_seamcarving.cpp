@@ -31,7 +31,7 @@ extern "C" {
 	    newfilename += filename;
 
 	    int pos = newfilename.find_last_of(".");
-	    newfilename = newfilename.substr(0,pos)+"_carved"+newfilename.substr(pos);
+	    newfilename = newfilename.substr(0,pos)+"_amplified"+newfilename.substr(pos);
 	    imwrite( newfilename.c_str(), image );
     }
 

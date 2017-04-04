@@ -8,9 +8,9 @@
 using namespace cv;
 using namespace std;
 
-double inner_dp[1010][1010], inner_choice[1010][1010];
-double pixel_energy[1010][1010];
-int pos[1010];
+double inner_dp[2005][2005], inner_choice[2005][2005];
+double pixel_energy[2005][2005];
+int pos[2005];
 
 int getptr(graph& g, int x, int y)
 {
@@ -40,9 +40,9 @@ graph remove_v_seam(graph& g, int check_negative = 0)
         }
         rowstart = g.pixelarray[rowstart].bottom;
     }
-    
+
     if(negative_count < check_negative)    return g;   //if no negative energy pixel exists, object has been removed!
-    
+
     for (i = 0; i < m; i++)
         inner_dp[0][i] = pixel_energy[0][i];
     for (i = 1; i < n; i++)
@@ -155,7 +155,7 @@ graph remove_h_seam(graph& g, int check_negative = 0)
     }
 
     if(negative_count < check_negative)    return g;   //if no negative energy pixel exists, object has been removed!
-    
+
     for (i = 0; i < n; i++)
         inner_dp[i][0] = pixel_energy[i][0];
     for (j = 1; j < m; j++)
@@ -341,7 +341,7 @@ graph insert_h_seam(graph& g)
         New.pixelarray[index].top = cur;
         New.pixelarray[index].bottom = Bottom;
         New.pixelarray[index].updated = false;
-        
+
         if (!i)
         {
             if (cur == New.topleft)
@@ -394,15 +394,15 @@ graph insert_h_seam(graph& g)
                 Bottom = New.pixelarray[cur].bottom;
                 New.pixelarray.push_back(pixel(New.pixelarray[cur].val[0],
                     New.pixelarray[cur].val[1], New.pixelarray[cur].val[2]));
-                
+
                 New.pixelarray[prevcur].left = index + 1;
                 New.pixelarray[prevcur].updated = false;
-                
+
                 New.pixelarray[index + 1].right = prevcur;
                 New.pixelarray[index + 1].updated = false;
-                
+
                 New.pixelarray_size++;
-                
+
                 New.pixelarray[index].left = nextleft;
                 New.pixelarray[index].updated = false;
 
@@ -431,10 +431,10 @@ graph insert_h_seam(graph& g)
             New.pixelarray_size++;
             New.pixelarray[index + 1].right = prevbot;
             New.pixelarray[index + 1].updated = false;
-            
+
             New.pixelarray[prevbot].left = index + 1;
             New.pixelarray[prevbot].updated = false;
-            
+
             New.pixelarray[index].left = nextleft;
             New.pixelarray[index].updated = false;
 
@@ -608,7 +608,7 @@ graph insert_v_seam(graph& g)
                     New.pixelarray[cur].val[1], New.pixelarray[cur].val[2]));
                 New.pixelarray[prevcur].top = index + 1;
                 New.pixelarray[prevcur].updated = false;
-                
+
                 New.pixelarray[index + 1].bottom = prevcur;
                 New.pixelarray[index + 1].updated = false;
 
@@ -620,7 +620,7 @@ graph insert_v_seam(graph& g)
                 New.pixelarray[nextleft].updated = false;
                 New.modify(prevcur,3);
                 New.modify(index,1);
-            
+
                 index++;
             }
             catch (Exception e)
@@ -654,7 +654,7 @@ graph insert_v_seam(graph& g)
             New.pixelarray[nextleft].updated = false;
             New.modify(prevcur,3);
             New.modify(index,1);
-            
+
             index++;
         }
     }
@@ -730,7 +730,7 @@ Mat rescale(const Mat& image, double r_height, double r_width)
             else
                 g = remove_h_seam(g);
     }
-    return g.convertgraphtoimage();    
+    return g.convertgraphtoimage();
 }
 
 Mat remove_object(const Mat& image, int r1, int c1,int r2,int c2)
@@ -762,7 +762,7 @@ Mat remove_object(const Mat& image, int r1, int c1,int r2,int c2)
             cur=g.pixelarray[cur].right;
         }
     }
-    
+
 
     int r=g.height, c = g.width;
     int r_orig = r, c_orig = c;
