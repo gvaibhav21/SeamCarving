@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from .forms import ImageUploadForm,ImageResizeForm
+from .forms import ImageUploadForm, ImageResizeForm, MagnifyForm
 import os
 from django.core.files.images import get_image_dimensions
 
@@ -37,6 +37,7 @@ def uploadImage(request):
             print save_path
             context = {
                 'resizeform':ImageResizeForm(),
+                'magnifyform': MagnifyForm(),
                 'image_width':w,
                 'image_height':h,
                 'image_name':f.name,
@@ -48,37 +49,50 @@ def uploadImage(request):
     if request.method == 'GET':
         print "Request is get"
         form = ImageUploadForm()
-        return render(request,'scarver/uploadImage.html',{'form':form})
+        return render(request,'scarver/uploadImage.html',{'uploadform':form})
 
 def resizeImage(request):
     if request.method == 'POST':
-        f = request.FILES.get('image',None)
-        w,h = get_image_dimensions(f)
-        print "=============="
-        print "Width is: "+str(w)
-        print "=============="
-        print "Height is: "+str(h)
-        print "=============="
-        print f.size
-        print "=============="
-        print f.content_type
-        print "=============="
-        print f.content_type_extra
-        print "=============="
-        if f:
-            save_path = saveImage(f)
-            print save_path
-            d_w = request.POST.get('desired_width',-1)
-            d_h = request.POST.get('desired_height',-1)
-            print d_w
-            print d_h
-            # TODO: call the cpp subroutine here
-            print "File saved successfully"
-            return HttpResponse("Request is post")
-        else:
-            # TODO: write the error message of no file upload
-            return render(request,'scarver/uploadImage.html',{'form':ImageUploadForm()})
-    if request.method == 'GET':
-        print "Request is get"
-        form = ImageUploadForm()
-        return render(request,'scarver/uploadImage.html',{'form':form})
+        print request.POST
+    d_h = float(request.POST.get('desired_height',1.0))
+    d_w = float(request.POST.get('desired_width',1.0))
+    image_name = request.POST.get('image_name',None)
+    # TODO: call the cpp subroutine here with desired parameters
+    # Let the proess finish execution a new image with a suffix of carved will
+    # be saved in the same directory
+    context = {
+    'carved_image_name':"carved_"+image_name,
+    }
+    return render(request,'carvedImage.html',context)
+
+def magnifyObject(request):
+    if request.method == "POST":
+        print request.POST
+        d_m = float(request.POST.get('desired_magnification',1.0))
+        image_name = request.POST.get('image_name',None)
+        # TODO: call magnification subroutine here
+        context = {
+        'magnified_image_name':"magnified_"+image_name,
+        }
+        return render(request,'magnifiedImage.html',context)
+
+    return HttpResponse("You are not authorised for what you did just now.")
+
+def objectRemovalSelection(request):
+    if request.method == "POST":
+        print request.POST
+        image_name = request.POST.get('image_name',None)
+        # TODO: render an html page with image area selection capability
+        context = {
+            'image_name':image_name,
+        }
+        return render(request,'selectImageArea.html',context)
+    return HttpResponse("OK")
+
+def objectRemoval(request):
+    if request.method == "POST":
+        print "Request method is post"
+        # TODO: take the image name and modified image from the request post
+        # and call the object removal subroutine from cpp shared library
+        
+    return HttpResponse("OK")

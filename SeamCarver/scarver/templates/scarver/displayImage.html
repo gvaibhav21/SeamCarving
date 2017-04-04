@@ -1,2 +1,23 @@
 {% load static %}
 <img src="/static/UploadedImages/{{image_name}}" alt="My Image">
+<h1>Image Width: {{image_width}} px</h1>
+<h1>Image Height: {{image_height}} px</h1>
+<form action="{%url 'resizeImage' %}" method="POST">
+  {% csrf_token %}
+  <input type="hidden" name="image_name" value="{{image_name}}">
+  {{resizeform.as_p}}
+  <button type="submit" class="save btn btn-default">Resize</button>
+</form>
+
+<form action="{%url 'magnifyObject' %}" method="POST">
+  {% csrf_token %}
+  <input type="hidden" name="image_name" value="{{image_name}}">
+  {{magnifyform.as_p}}
+  <button type="submit" class="save btn btn-default">Magnify</button>
+</form>
+
+<form action="{%url 'objectRemovalSelection'}" method="POST">
+  {% csrf_token %}
+  <input type="hidden" name="image_name" value="{{image_name}}">
+  <button type="submit" class="save btn btn-default">Remove Object</button>
+</form>
