@@ -4,8 +4,11 @@ from .forms import ImageUploadForm, ImageResizeForm, MagnifyForm
 import os
 from django.core.files.images import get_image_dimensions
 
-# Create your views here.
+from ctypes import *
+lib = cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__))+'/seamcarvinglib/shared_seamcarving.so')
+lib.Rescale.argtypes = [c_char_p,c_double,c_double]
 
+# Create your views here.
 def saveImage(f):
     app_path = os.path.dirname(os.path.realpath(__file__))
     save_path = app_path+os.sep+'static'+os.sep+'UploadedImages'+os.sep+f.name
@@ -54,16 +57,19 @@ def uploadImage(request):
 def resizeImage(request):
     if request.method == 'POST':
         print request.POST
-    d_h = float(request.POST.get('desired_height',1.0))
-    d_w = float(request.POST.get('desired_width',1.0))
+    d_h = float(request.POST.get('desired_height_ratio',1.5))
+    d_w = float(request.POST.get('desired_width_ratio',1.0))
     image_name = request.POST.get('image_name',None)
+    image_path = os.path.dirname(os.path.realpath(__file__))+os.sep+'static'+os.sep+'UploadedImages'+os.sep+image_name
+    lib.Rescale(image_path,d_h,d_w)
     # TODO: call the cpp subroutine here with desired parameters
     # Let the proess finish execution a new image with a suffix of carved will
     # be saved in the same directory
+    pos = image_name.find('.')
     context = {
-    'carved_image_name':"carved_"+image_name,
+    'carved_image_name':image_name[:pos]+"_carved"+image_name[pos:],
     }
-    return render(request,'carvedImage.html',context)
+    return render(request,'scarver/carvedImage.html',context)
 
 def magnifyObject(request):
     if request.method == "POST":
@@ -94,5 +100,5 @@ def objectRemoval(request):
         print "Request method is post"
         # TODO: take the image name and modified image from the request post
         # and call the object removal subroutine from cpp shared library
-        
+
     return HttpResponse("OK")
