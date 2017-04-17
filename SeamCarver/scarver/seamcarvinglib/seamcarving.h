@@ -772,7 +772,7 @@ Mat remove_object(const Mat& image, const Mat& mask)
     // cout<<energy_sum<<'\n';
     int start = getptr(g, 0, 0), i,j;
     int height = mask.size().height, width = mask.size().width;
-    int minr=1e8, minc=-1e8, maxr=-1, maxc=-1;
+    int minr=1e8, minc=1e8, maxr=-1, maxc=-1;
     for(i=0;i<height;i++)
     {
         int cur=start;
