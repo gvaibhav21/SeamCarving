@@ -3,11 +3,15 @@ from django.http import HttpResponse
 from .forms import ImageUploadForm, ImageResizeForm, MagnifyForm
 import os
 from django.core.files.images import get_image_dimensions
-
+import numpy as np
+from PIL import Image
 from ctypes import *
+import json
 lib = cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__))+'/seamcarvinglib/shared_seamcarving.so')
 lib.Rescale.argtypes = [c_char_p,c_double,c_double]
 lib.Amplify.argtypes = [c_char_p,c_double]
+lib.removeRetain.argtypes = [c_char_p]
+
 # Create your views here.
 def saveImage(f):
     app_path = os.path.dirname(os.path.realpath(__file__))
@@ -105,8 +109,23 @@ def objectRemSel(request):
         image_path = os.path.dirname(os.path.realpath(__file__))+os.sep+'static'\
         +os.sep+'UploadedImages'+os.sep+image_name
         myarray = request.POST.get('retention_removal_array',None)
-        lib.removeRetain(image_path,myarray)
-        post = image_name.find('.')
+        json_array = json.loads(myarray)
+        # print json_array
+        data = np.asarray(list(json_array))
+        shape = data.shape
+        print shape
+        for i in range(shape[0]):
+            for j in range(shape[1]):
+                data[i][j] = data[i][j]*127 + 127
+        rescaled = data.astype(np.uint8)
+        im = Image.fromarray(rescaled)
+        save_path = os.path.dirname(os.path.realpath(__file__))+os.sep+'static'\
+        +os.sep+'UploadedImages'
+        pos = image_name.find('.')
+        save_path = save_path+os.sep+image_name[:pos]+"_gray"+image_name[pos:]
+        im.save(save_path)
+        # lib.removeRetain(image_path)
+
         context = {
         'modified_image_name':image_name[:pos]+"_modified"+image_name[pos:],
         'image_name':image_name,
