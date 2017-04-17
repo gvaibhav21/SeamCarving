@@ -39,6 +39,8 @@ function modifyarray(xleft,ytop,fillwidth,fillheight,val) {
 
 img.src = pseudoImg.src;
 var canvas = document.getElementById('canvas');
+canvas.width = width;
+canvas.height = height;
 var ctx = canvas.getContext('2d');
 
 img.onload = function() {

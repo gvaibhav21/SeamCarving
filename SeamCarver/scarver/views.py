@@ -124,7 +124,7 @@ def objectRemSel(request):
         pos = image_name.find('.')
         save_path = save_path+os.sep+image_name[:pos]+"_gray"+image_name[pos:]
         im.save(save_path)
-        # lib.removeRetain(image_path)
+        lib.removeRetain(image_path)
 
         context = {
         'modified_image_name':image_name[:pos]+"_modified"+image_name[pos:],
