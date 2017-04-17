@@ -8,10 +8,10 @@
 using namespace cv;
 using namespace std;
 
-double inner_dp[2005][2005], inner_choice[2005][2005];
-double pixel_energy[2005][2005];
-int pos[2005];
-
+double inner_dp[1010][1010], inner_choice[1010][1010];
+double pixel_energy[1010][1010];
+int pos[1010];
+int cnt = 0;
 int getptr(graph& g, int x, int y)
 {
     // cout << "here!" << endl;
@@ -40,9 +40,9 @@ graph remove_v_seam(graph& g, int check_negative = 0)
         }
         rowstart = g.pixelarray[rowstart].bottom;
     }
-
+    
     if(negative_count < check_negative)    return g;   //if no negative energy pixel exists, object has been removed!
-
+    
     for (i = 0; i < m; i++)
         inner_dp[0][i] = pixel_energy[0][i];
     for (i = 1; i < n; i++)
@@ -83,12 +83,15 @@ graph remove_v_seam(graph& g, int check_negative = 0)
         pos[i] = cur;
     }
 
-    graph New;
+    graph New, gif_write;
     New = g;
+    gif_write = g;
     New.width = New.width - 1;
     cur = getptr(New, n - 1, pos[n - 1]);
     for (i = n - 1; i >= 0; --i)
     {
+        gif_write.pixelarray[cur].val[0] = gif_write.pixelarray[cur].val[1] = 0;
+        gif_write.pixelarray[cur].val[2] = 255;
         int Left = New.pixelarray[cur].left, Right = New.pixelarray[cur].right;
         if (Left != -1)
         {
@@ -131,6 +134,8 @@ graph remove_v_seam(graph& g, int check_negative = 0)
             cur = New.pixelarray[New.pixelarray[cur].top].right;
         }
     }
+    // imwrite( "./GIF/"+std::to_string(cnt++)+".png", gif_write.convertgraphtoimage() );
+    
     cout << New.height << ' ' << New.width << ' '<<negative_count<<' '<<check_negative<<'\n';
     // New.convertgraphtoimage();
     return New;
@@ -155,7 +160,7 @@ graph remove_h_seam(graph& g, int check_negative = 0)
     }
 
     if(negative_count < check_negative)    return g;   //if no negative energy pixel exists, object has been removed!
-
+    
     for (i = 0; i < n; i++)
         inner_dp[i][0] = pixel_energy[i][0];
     for (j = 1; j < m; j++)
@@ -196,13 +201,16 @@ graph remove_h_seam(graph& g, int check_negative = 0)
         pos[i] = cur;
     }
 
-    graph New;
+    graph New, gif_write;
     New = g;
+    gif_write = g;
     New.height = New.height - 1;
     cur = getptr(New, pos[m - 1], m - 1);
     for (i = m - 1; i >= 0; --i)
     {
         int Top = New.pixelarray[cur].top, Bottom = New.pixelarray[cur].bottom;
+        gif_write.pixelarray[cur].val[0] = gif_write.pixelarray[cur].val[1] = 0;
+        gif_write.pixelarray[cur].val[2] = 255;
         if (Top != -1)
         {
             New.pixelarray[Top].bottom = Bottom;
@@ -244,6 +252,7 @@ graph remove_h_seam(graph& g, int check_negative = 0)
             cur = New.pixelarray[New.pixelarray[cur].left].bottom;
         }
     }
+    // imwrite( "./GIF/"+std::to_string(cnt++)+".png", gif_write.convertgraphtoimage() );
     cout << New.height << ' ' << New.width << ' '<<negative_count<<' '<<check_negative<<'\n';
     return New;
 }
@@ -341,7 +350,7 @@ graph insert_h_seam(graph& g)
         New.pixelarray[index].top = cur;
         New.pixelarray[index].bottom = Bottom;
         New.pixelarray[index].updated = false;
-
+        
         if (!i)
         {
             if (cur == New.topleft)
@@ -394,15 +403,15 @@ graph insert_h_seam(graph& g)
                 Bottom = New.pixelarray[cur].bottom;
                 New.pixelarray.push_back(pixel(New.pixelarray[cur].val[0],
                     New.pixelarray[cur].val[1], New.pixelarray[cur].val[2]));
-
+                
                 New.pixelarray[prevcur].left = index + 1;
                 New.pixelarray[prevcur].updated = false;
-
+                
                 New.pixelarray[index + 1].right = prevcur;
                 New.pixelarray[index + 1].updated = false;
-
+                
                 New.pixelarray_size++;
-
+                
                 New.pixelarray[index].left = nextleft;
                 New.pixelarray[index].updated = false;
 
@@ -431,10 +440,10 @@ graph insert_h_seam(graph& g)
             New.pixelarray_size++;
             New.pixelarray[index + 1].right = prevbot;
             New.pixelarray[index + 1].updated = false;
-
+            
             New.pixelarray[prevbot].left = index + 1;
             New.pixelarray[prevbot].updated = false;
-
+            
             New.pixelarray[index].left = nextleft;
             New.pixelarray[index].updated = false;
 
@@ -608,7 +617,7 @@ graph insert_v_seam(graph& g)
                     New.pixelarray[cur].val[1], New.pixelarray[cur].val[2]));
                 New.pixelarray[prevcur].top = index + 1;
                 New.pixelarray[prevcur].updated = false;
-
+                
                 New.pixelarray[index + 1].bottom = prevcur;
                 New.pixelarray[index + 1].updated = false;
 
@@ -620,7 +629,7 @@ graph insert_v_seam(graph& g)
                 New.pixelarray[nextleft].updated = false;
                 New.modify(prevcur,3);
                 New.modify(index,1);
-
+            
                 index++;
             }
             catch (Exception e)
@@ -654,7 +663,7 @@ graph insert_v_seam(graph& g)
             New.pixelarray[nextleft].updated = false;
             New.modify(prevcur,3);
             New.modify(index,1);
-
+            
             index++;
         }
     }
@@ -669,6 +678,7 @@ Mat rescale(const Mat& image, double r_height, double r_width)
     int c = abs((int)(image.size().width * (1 - r_width)));
     graph g(image);
     cout<<r<<' '<<c<<'\n';
+    int cnt = 0;
     if (r <= c)
     {
         if (r > 0)
@@ -685,19 +695,24 @@ Mat rescale(const Mat& image, double r_height, double r_width)
                         g = insert_v_seam(g);
                     else
                         g = remove_v_seam(g);
+                    // imwrite( "./GIF/"+std::to_string(cnt++)+".png", g.convertgraphtoimage() );
                 }
                 if(r_height > 1)
                     g = insert_h_seam(g);
                 else
                     g = remove_h_seam(g);
+                // imwrite( "./GIF/"+std::to_string(cnt++)+".png", g.convertgraphtoimage() );
                 remaining += q;
             }
         }
         for (int i = 0; i < c; i++)
+        {
             if(r_width > 1)
                 g = insert_v_seam(g);
             else
                 g = remove_v_seam(g);
+            // imwrite( "./GIF/"+std::to_string(cnt++)+".png", g.convertgraphtoimage() );
+        }
     }
     else
     {
@@ -715,60 +730,74 @@ Mat rescale(const Mat& image, double r_height, double r_width)
                         g = insert_h_seam(g);
                     else
                         g = remove_h_seam(g);
+                    // imwrite( "./GIF/"+std::to_string(cnt++)+".png", g.convertgraphtoimage() );
                 }
 
                 if(r_width > 1)
                     g = insert_v_seam(g);
                 else
                     g = remove_v_seam(g);
+                // imwrite( "./GIF/"+std::to_string(cnt++)+".png", g.convertgraphtoimage() );
                 remaining += q;
             }
         }
         for (int i = 0; i < r; i++)
+        {
             if(r_height > 1)
                 g = insert_h_seam(g);
             else
                 g = remove_h_seam(g);
+            // imwrite( "./GIF/"+std::to_string(cnt++)+".png", g.convertgraphtoimage() );
+        }
     }
-    return g.convertgraphtoimage();
+    return g.convertgraphtoimage();    
 }
 
-Mat remove_object(const Mat& image, int r1, int c1,int r2,int c2)
+Mat remove_object(const Mat& image, const Mat& mask)
 {
-    int dr = r2-r1+1, dc = c2-c1+1;
     graph g(image);
-    int start = getptr(g, 0, 0),i,j;
-    double energy_sum = 0;
-    for(i=0;i<g.height;i++)
+    // int start = getptr(g, 0, 0),i,j;
+    // double energy_sum = 0;
+    // for(i=0;i<g.height;i++)
+    // {
+    //     int cur=start;
+    //     start = g.pixelarray[start].bottom;
+    //     for(j=0;j<g.width;j++)
+    //     {
+    //         energy_sum += g.getEnergy(cur);
+    //         cur=g.pixelarray[cur].right;
+    //     }
+    // }
+    // energy_sum /= (g.width*g.height);
+    // cout<<energy_sum<<'\n';
+    int start = getptr(g, 0, 0), i,j;
+    int height = mask.size().height, width = mask.size().width;
+    int minr=1e8, minc=-1e8, maxr=-1, maxc=-1;
+    for(i=0;i<height;i++)
     {
         int cur=start;
         start = g.pixelarray[start].bottom;
-        for(j=0;j<g.width;j++)
+        for(j=0;j<width;j++)
         {
-            energy_sum += g.getEnergy(cur);
+            if(mask.at<uchar>(i,j) == 0)
+            {
+                minr = min(minr,i);
+                maxr = max(maxr,i);
+                minc = min(minc,j);
+                maxc = max(maxc,j);
+                g.pixelarray[cur].penalty = -1e9;
+            }
+            else if(mask.at<uchar>(i,j) == 254)
+                g.pixelarray[cur].penalty = 1e9;
             cur=g.pixelarray[cur].right;
         }
     }
-    energy_sum /= (g.width*g.height);
-    start = getptr(g, r1, c1);
-    cout<<energy_sum<<'\n';
-    for(i=0;i<=r2-r1;i++)
-    {
-        int cur=start;
-        start = g.pixelarray[start].bottom;
-        for(j=0;j<=c2-c1;j++)
-        {
-            g.pixelarray[cur].penalty = -1e9;
-            cur=g.pixelarray[cur].right;
-        }
-    }
-
-
+    if(maxr == -1)  return g.convertgraphtoimage();
     int r=g.height, c = g.width;
     int r_orig = r, c_orig = c;
     while(true)
     {
-        if(r2-r1>=c2-c1)
+        if(maxr-minr>=maxc-minc)
             g=remove_v_seam(g,1);
         else
             g=remove_h_seam(g,1);
