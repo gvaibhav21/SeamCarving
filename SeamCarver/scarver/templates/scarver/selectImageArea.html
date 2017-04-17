@@ -1,0 +1,16 @@
+{% load static %}
+<canvas id="canvas" width="300" height="227" style="float:left"></canvas>
+<canvas id="canvasred" width="3" height="3" style="display:none"></canvas>
+<img id="imagelocation" style="display:none" src="/static/UploadedImages/{{image_name}}" alt="My Image">
+<div id="color" style="width:200px;height:500px;float:left"></div>
+<button id="selectred">Select Object for Removal</button>
+<button id="selectgreen">Select Object for Retention</button>
+<div id="formdiv" style="margin-top:180px">
+  <form id="imageform" action="{%url 'objectRemSel' %}" method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="image_name" value="{{image_name}}">
+    <input type="hidden" id="jsonarray" name="retention_removal_array">
+    <button id="submitimage" type="submit">Submit Image</button>
+  </form>
+</div>
+<script type="text/javascript" src="/static/js/mark.js"></script>

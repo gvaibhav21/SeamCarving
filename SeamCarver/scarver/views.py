@@ -7,7 +7,7 @@ from django.core.files.images import get_image_dimensions
 from ctypes import *
 lib = cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__))+'/seamcarvinglib/shared_seamcarving.so')
 lib.Rescale.argtypes = [c_char_p,c_double,c_double]
-
+lib.Amplify.argtypes = [c_char_p,c_double]
 # Create your views here.
 def saveImage(f):
     app_path = os.path.dirname(os.path.realpath(__file__))
@@ -62,25 +62,27 @@ def resizeImage(request):
     image_name = request.POST.get('image_name',None)
     image_path = os.path.dirname(os.path.realpath(__file__))+os.sep+'static'+os.sep+'UploadedImages'+os.sep+image_name
     lib.Rescale(image_path,d_h,d_w)
-    # TODO: call the cpp subroutine here with desired parameters
-    # Let the proess finish execution a new image with a suffix of carved will
-    # be saved in the same directory
     pos = image_name.find('.')
     context = {
     'carved_image_name':image_name[:pos]+"_carved"+image_name[pos:],
+    'image_name':image_name,
     }
     return render(request,'scarver/carvedImage.html',context)
 
 def magnifyObject(request):
     if request.method == "POST":
         print request.POST
-        d_m = float(request.POST.get('desired_magnification',1.0))
+        d_m = float(request.POST.get('desired_magnification',1.25))
         image_name = request.POST.get('image_name',None)
-        # TODO: call magnification subroutine here
+        image_path = os.path.dirname(os.path.realpath(__file__))+os.sep+'static'\
+        +os.sep+'UploadedImages'+os.sep+image_name
+        lib.Amplify(image_path,d_m)
+        pos = image_name.find('.')
         context = {
-        'magnified_image_name':"magnified_"+image_name,
+        'magnified_image_name':image_name[:pos]+"_amplified"+image_name[pos:],
+        'image_name':image_name,
         }
-        return render(request,'magnifiedImage.html',context)
+        return render(request,'scarver/magnifiedImage.html',context)
 
     return HttpResponse("You are not authorised for what you did just now.")
 
@@ -88,17 +90,26 @@ def objectRemovalSelection(request):
     if request.method == "POST":
         print request.POST
         image_name = request.POST.get('image_name',None)
-        # TODO: render an html page with image area selection capability
         context = {
             'image_name':image_name,
         }
-        return render(request,'selectImageArea.html',context)
+        return render(request,'scarver/selectImageArea.html',context)
     return HttpResponse("OK")
 
-def objectRemoval(request):
+def objectRemSel(request):
     if request.method == "POST":
         print "Request method is post"
         # TODO: take the image name and modified image from the request post
         # and call the object removal subroutine from cpp shared library
-
-    return HttpResponse("OK")
+        image_name = request.POST.get('image_name',None)
+        image_path = os.path.dirname(os.path.realpath(__file__))+os.sep+'static'\
+        +os.sep+'UploadedImages'+os.sep+image_name
+        myarray = request.POST.get('retention_removal_array',None)
+        lib.removeRetain(image_path,myarray)
+        post = image_name.find('.')
+        context = {
+        'modified_image_name':image_name[:pos]+"_modified"+image_name[pos:],
+        'image_name':image_name,
+        }
+        return render(request,'scarver/modifiedImage.html',context)
+    return HttpResponse("Something went wrong.")

@@ -16,7 +16,7 @@
   <button type="submit" class="save btn btn-default">Magnify</button>
 </form>
 
-<form action="{%url 'objectRemovalSelection'}" method="POST">
+<form action="{%url 'objectRemovalSelection'%}" method="POST">
   {% csrf_token %}
   <input type="hidden" name="image_name" value="{{image_name}}">
   <button type="submit" class="save btn btn-default">Remove Object</button>
