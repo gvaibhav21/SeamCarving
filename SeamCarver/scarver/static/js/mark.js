@@ -1,5 +1,7 @@
 var img = new Image();
+var origImg = new Image();
 var pseudoImg = document.getElementById('segimgloc');
+var origImgloc = document.getElementById('imagelocation')
 var redbutton = document.getElementById('selectred');
 var greenbutton = document.getElementById('selectgreen');
 var hiddeninput = document.getElementById('jsonarray');
@@ -8,12 +10,17 @@ var segmentationinfo = document.getElementById('segmentinfo');
 var submitbutton = document.getElementById('submitimage');
 var imageform = document.getElementById('imageform');
 var selectsegment = document.getElementById('selectsegment');
+var canvas = document.getElementById('canvas');
+var canvasorig = document.getElementById('canvasorigimg');
 var segmentinfoarray = JSON.parse(segmentationinfo.value)
 var height = pseudoImg.height;
 var width = pseudoImg.width;
 var mousedragflag = 0;
 var segmentcolorflag = false;
 var redset = 0;
+
+var markedSegments = new Set();
+
 console.log("Height"+height);
 console.log("Width"+width);
 // Initialize the object selection/removal array
@@ -41,15 +48,26 @@ function modifyarray(xleft,ytop,fillwidth,fillheight,val) {
 
 
 img.src = pseudoImg.src;
-var canvas = document.getElementById('canvas');
+origImg.src = origImgloc.src;
+
 canvas.width = width;
 canvas.height = height;
+canvasorig.width = width;
+canvasorig.height = height;
+
 var ctx = canvas.getContext('2d');
+var ctxorig = canvasorig.getContext('2d');
 
 img.onload = function() {
   ctx.drawImage(img, 0, 0);
   img.style.display = 'none';
 };
+
+origImg.onload = function() {
+  ctxorig.drawImage(origImg, 0, 0);
+  origImg.style.display = 'none';
+}
+
 var color = document.getElementById('color');
 
 function pick(event) {
@@ -117,25 +135,41 @@ function setColorSegment(event) {
     var y = event.layerY;
 
     var segclass = segmentinfoarray[y][x];
-    if(redset == 1) {
-      ctx.fillStyle="#FF0000";
-    }
-    else if(redset == -1) {
-      ctx.fillStyle="#00FF00";
-    }
-    else{
-      return;
-    }
-
-    for(var i = 0; i < width; i++) {
-      for(var j = 0; j < height; j++) {
-        if(segmentinfoarray[j][i] == segclass) {
-          modifyarray(i,j,1,1,-redset);
-          ctx.fillRect(i,j,1,1);
+    if(markedSegments.has(segclass)) {
+      //Copy original image data
+      for(var i = 0; i < width; i++) {
+        for(var j = 0; j < height; j++) {
+          if(segmentinfoarray[j][i] == segclass) {
+            var pixel = ctxorig.getImageData(i, j, 1, 1);
+            ctx.putImageData(pixel,i,j);
+            modifyarray(i,j,1,1,0);
+          }
         }
       }
+      markedSegments.delete(segclass);
+      console.log("Orignal data copied to Segment "+segclass);
     }
-    console.log("Segment filled with color");
+    else {
+      if(redset == 1) {
+        ctx.fillStyle="#FF0000";
+      }
+      else if(redset == -1) {
+        ctx.fillStyle="#00FF00";
+      }
+      else{
+        return;
+      }
+      for(var i = 0; i < width; i++) {
+        for(var j = 0; j < height; j++) {
+          if(segmentinfoarray[j][i] == segclass) {
+            modifyarray(i,j,1,1,-redset);
+            ctx.fillRect(i,j,1,1);
+          }
+        }
+      }
+      markedSegments.add(segclass);
+      console.log("Segment "+segclass+" filled with color");
+    }
   }
 }
 
