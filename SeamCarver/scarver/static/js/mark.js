@@ -1,15 +1,21 @@
 var img = new Image();
-var pseudoImg = document.getElementById('imagelocation');
+var pseudoImg = document.getElementById('segimgloc');
 var redbutton = document.getElementById('selectred');
 var greenbutton = document.getElementById('selectgreen');
 var hiddeninput = document.getElementById('jsonarray');
+var brushsize = document.getElementById('brushsize');
+var segmentationinfo = document.getElementById('segmentinfo');
+var submitbutton = document.getElementById('submitimage');
+var imageform = document.getElementById('imageform');
+var selectsegment = document.getElementById('selectsegment');
+var segmentinfoarray = JSON.parse(segmentationinfo.value)
 var height = pseudoImg.height;
 var width = pseudoImg.width;
 var mousedragflag = 0;
+var segmentcolorflag = false;
 var redset = 0;
 console.log("Height"+height);
 console.log("Width"+width);
-
 // Initialize the object selection/removal array
 var myarray = [];
 for(var i = 0; i < height; i++){
@@ -26,14 +32,11 @@ function modifyarray(xleft,ytop,fillwidth,fillheight,val) {
   var xmax = Math.min(width,xleft+fillwidth);
   var ymax = Math.min(height,ytop+fillheight);
 
-  console.log("xleft "+xleft);
-  console.log("ytop "+ytop);
   for(var i = xleft; i < xmax; i++) {
     for(var j = ytop; j < ymax; j++) {
       myarray[j][i] = val;  //j denotes row index and i denotes column index
     }
   }
-  hiddeninput.value = JSON.stringify(myarray);
 }
 
 
@@ -73,20 +76,23 @@ function setgreen(event) {
   redset = -1;
 }
 function setColor(event) {
-  if(mousedragflag == 1) {
+  segmentcolorflag = selectsegment.checked;
+  if(mousedragflag == 1 && segmentcolorflag == false) {
     var x = event.layerX;
     var y = event.layerY;
     var xleft,ytop;
-    fillwidth = 9;
-    fillheight = 9;
+    var bsize = parseInt(brushsize.value);
+    if(isNaN(bsize)) {
+      fillwidth = 9;
+    }
+    else {
+      fillwidth = bsize;
+    }
+    fillheight = fillwidth;
     xleft = x-parseInt((fillwidth-1)/2);
     ytop = y-parseInt((fillheight-1)/2);
-    if(x == 0) {
-      xleft = x;
-    }
-    if(y == 0) {
-      ytop = y;
-    }
+    xleft = Math.max(0,xleft);
+    ytop = Math.max(0,ytop);
 
     if(redset == 1) {
       ctx.fillStyle="#FF0000";
@@ -101,14 +107,48 @@ function setColor(event) {
     }
     ctx.fillRect(xleft,ytop,fillwidth,fillheight);
     console.log("MouseDown Detected");
-    var imgData = ctx.getImageData(0,0,width,height);
-    console.log(imgData);
   }
+}
+
+function setColorSegment(event) {
+  var segmentcolorflag = selectsegment.checked;
+  if(segmentcolorflag == true) {
+    var x = event.layerX;
+    var y = event.layerY;
+
+    var segclass = segmentinfoarray[y][x];
+    if(redset == 1) {
+      ctx.fillStyle="#FF0000";
+    }
+    else if(redset == -1) {
+      ctx.fillStyle="#00FF00";
+    }
+    else{
+      return;
+    }
+
+    for(var i = 0; i < width; i++) {
+      for(var j = 0; j < height; j++) {
+        if(segmentinfoarray[j][i] == segclass) {
+          modifyarray(i,j,1,1,-redset);
+          ctx.fillRect(i,j,1,1);
+        }
+      }
+    }
+    console.log("Segment filled with color");
+  }
+}
+
+function submitimage(event) {
+  hiddeninput.value = JSON.stringify(myarray);
+  imageform.submit();
 }
 // canvas.addEventListener('mousemove', pick);
 canvas.addEventListener('mousedown',setMouseDrag);
 canvas.addEventListener('mouseup',unsetMouseDrag);
 canvas.addEventListener('mousemove',setColor);
 canvas.addEventListener('mouseleave',unsetMouseDrag);
+canvas.addEventListener('click',setColorSegment);
 redbutton.addEventListener('click',setred);
 greenbutton.addEventListener('click',setgreen);
+submitbutton.addEventListener('click',submitimage);

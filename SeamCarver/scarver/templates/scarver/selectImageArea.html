@@ -2,6 +2,7 @@
 <canvas id="canvas" width="300" height="227" style="float:left"></canvas>
 <canvas id="canvasred" width="3" height="3" style="display:none"></canvas>
 <img id="imagelocation" style="display:none" src="/static/UploadedImages/{{image_name}}" alt="My Image">
+<img id="segimgloc" style="display:none" src="/static/UploadedImages/{{image_segmented_name}}" alt="Segmented Image">
 <div id="color" style="width:200px;height:500px;float:left"></div>
 <button id="selectred">Select Object for Removal</button>
 <button id="selectgreen">Select Object for Retention</button>
@@ -10,7 +11,14 @@
     {% csrf_token %}
     <input type="hidden" name="image_name" value="{{image_name}}">
     <input type="hidden" id="jsonarray" name="retention_removal_array">
-    <button id="submitimage" type="submit">Submit Image</button>
+    <input type="checkbox" id="selectsegment" name="selectsegment">
+    <input type="text" id="brushsize" name="brushsize">
+    <button id="submitimage">Submit Image</button>
+  </form>
+</div>
+<div id="segmentedimageinfo">
+  <form id="segmentedform">
+    <input type="hidden" id="segmentinfo" name="segment_classes" value="{{segments_json}}">
   </form>
 </div>
 <script type="text/javascript" src="/static/js/mark.js"></script>

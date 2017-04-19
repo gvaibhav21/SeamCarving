@@ -7,6 +7,14 @@ import numpy as np
 from PIL import Image
 from ctypes import *
 import json
+
+# import the necessary packages for image segmentation
+from skimage.segmentation import slic
+from skimage.segmentation import mark_boundaries
+from skimage.util import img_as_float
+from skimage import io
+import cv2
+
 lib = cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__))+'/seamcarvinglib/shared_seamcarving.so')
 lib.Rescale.argtypes = [c_char_p,c_double,c_double]
 lib.Amplify.argtypes = [c_char_p,c_double]
@@ -94,8 +102,44 @@ def objectRemovalSelection(request):
     if request.method == "POST":
         print request.POST
         image_name = request.POST.get('image_name',None)
+        l = len(image_name)
+        pos = image_name.find('.')
+        image_path = os.path.dirname(os.path.realpath(__file__))+os.sep+'static'\
+        +os.sep+'UploadedImages'+os.sep+image_name
+
+        # load the image and convert it to a floating point data type
+        image = img_as_float(io.imread(image_path))
+
+        numSegments = int((image.shape[0]+image.shape[1])*0.75)
+
+        # apply SLIC and extract (approximately) the supplied number of segments
+
+        segments = slic(image, n_segments = numSegments)
+        print "Segments shape :",
+        print segments.shape
+        segments_list = segments.tolist()
+        segments_json = json.dumps(segments_list)
+        # print segments_json
+        print "Type_segments: ",
+        print type(segments)
+
+        img = mark_boundaries(image, segments, color=(.5, .5, .5),mode='outer')
+
+        # Convert from bgr to rgb
+        for i in range(img.shape[0]):
+            for j in range(img.shape[1]):
+                temp = img[i,j,0]
+                img[i,j,0] = img[i,j,2]
+                img[i,j,2] = temp
+        image_segmented_name = image_name[:pos]+"_segmented"+image_name[pos:]
+        image_segmented_path = image_path[:-l]+image_segmented_name
+        print image_segmented_path
+
+        cv2.imwrite(image_segmented_path,img*255)
         context = {
             'image_name':image_name,
+            'segments_json':segments_json,
+            'image_segmented_name':image_segmented_name,
         }
         return render(request,'scarver/selectImageArea.html',context)
     return HttpResponse("OK")
