@@ -109,6 +109,6 @@ function setColor(event) {
 canvas.addEventListener('mousedown',setMouseDrag);
 canvas.addEventListener('mouseup',unsetMouseDrag);
 canvas.addEventListener('mousemove',setColor);
-
+canvas.addEventListener('mouseleave',unsetMouseDrag);
 redbutton.addEventListener('click',setred);
 greenbutton.addEventListener('click',setgreen);

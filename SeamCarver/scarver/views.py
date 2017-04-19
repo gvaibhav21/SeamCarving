@@ -83,7 +83,7 @@ def magnifyObject(request):
         lib.Amplify(image_path,d_m)
         pos = image_name.find('.')
         context = {
-        'magnified_image_name':image_name[:pos]+"_amplified"+image_name[pos:],
+        'magnified_image_name':image_name[:pos]+"_carved"+image_name[pos:],
         'image_name':image_name,
         }
         return render(request,'scarver/magnifiedImage.html',context)
