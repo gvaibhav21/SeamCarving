@@ -12,6 +12,7 @@ double inner_dp[2010][2010], inner_choice[2010][2010];
 double pixel_energy[2010][2010];
 int pos[2010];
 int cnt = 0;
+vector<int> removed_pixels;
 int getptr(graph& g, int x, int y)
 {
     // cout << "here!" << endl;
@@ -23,8 +24,9 @@ int getptr(graph& g, int x, int y)
     return cur;
 }
 
-graph remove_v_seam(graph& g, int check_negative = 0)
+void remove_v_seam(graph& g, int check_negative = 0)
 {
+
     int m = g.width, n = g.height, i, j;
 
     int cur = g.topleft, rowstart = g.topleft;
@@ -41,7 +43,7 @@ graph remove_v_seam(graph& g, int check_negative = 0)
         rowstart = g.pixelarray[rowstart].bottom;
     }
 
-    if(negative_count < check_negative)    return g;   //if no negative energy pixel exists, object has been removed!
+    if(negative_count < check_negative)    return;   //if no negative energy pixel exists, object has been removed!
 
     for (i = 0; i < m; i++)
         inner_dp[0][i] = pixel_energy[0][i];
@@ -83,65 +85,64 @@ graph remove_v_seam(graph& g, int check_negative = 0)
         pos[i] = cur;
     }
 
-    graph New, gif_write;
-    New = g;
-    gif_write = g;
-    New.width = New.width - 1;
-    cur = getptr(New, n - 1, pos[n - 1]);
+    // graph New;
+    // New = g;
+    g.width = g.width - 1;
+    cur = getptr(g, n - 1, pos[n - 1]);
     for (i = n - 1; i >= 0; --i)
     {
-        gif_write.pixelarray[cur].val[0] = gif_write.pixelarray[cur].val[1] = 0;
-        gif_write.pixelarray[cur].val[2] = 255;
-        int Left = New.pixelarray[cur].left, Right = New.pixelarray[cur].right;
+        removed_pixels.push_back(cur);
+
+        int Left = g.pixelarray[cur].left, Right = g.pixelarray[cur].right;
         if (Left != -1)
         {
-            New.pixelarray[Left].right = Right;
-            New.pixelarray[Left].updated = false;
+            g.pixelarray[Left].right = Right;
+            g.pixelarray[Left].updated = false;
         }
         if (Right != -1)
         {
-            New.pixelarray[Right].left = Left;
-            New.pixelarray[Right].updated = false;
+            g.pixelarray[Right].left = Left;
+            g.pixelarray[Right].updated = false;
         }
         if (!i)
         {
-            if (cur == New.topleft)
-                New.topleft = New.pixelarray[cur].right;
+            if (cur == g.topleft)
+                g.topleft = g.pixelarray[cur].right;
             break;
         }
         if (pos[i] == pos[i - 1])
-            cur = New.pixelarray[cur].top;
+            cur = g.pixelarray[cur].top;
         else if (pos[i] > pos[i - 1])
         {
-            int Left = New.pixelarray[cur].left, Right = New.pixelarray[cur].top;
-            New.pixelarray[Left].top = Right;
-            New.pixelarray[Left].updated = false;
+            int Left = g.pixelarray[cur].left, Right = g.pixelarray[cur].top;
+            g.pixelarray[Left].top = Right;
+            g.pixelarray[Left].updated = false;
 
-            New.pixelarray[Right].bottom = Left;
-            New.pixelarray[Right].updated = false;
+            g.pixelarray[Right].bottom = Left;
+            g.pixelarray[Right].updated = false;
 
-            cur = New.pixelarray[New.pixelarray[cur].top].left;
+            cur = g.pixelarray[g.pixelarray[cur].top].left;
         }
         else
         {
-            int Right = New.pixelarray[cur].right, Left = New.pixelarray[cur].top;
-            New.pixelarray[Right].top = Left;
-            New.pixelarray[Right].updated = false;
+            int Right = g.pixelarray[cur].right, Left = g.pixelarray[cur].top;
+            g.pixelarray[Right].top = Left;
+            g.pixelarray[Right].updated = false;
 
-            New.pixelarray[Left].bottom = Right;
-            New.pixelarray[Left].updated = false;
+            g.pixelarray[Left].bottom = Right;
+            g.pixelarray[Left].updated = false;
 
-            cur = New.pixelarray[New.pixelarray[cur].top].right;
+            cur = g.pixelarray[g.pixelarray[cur].top].right;
         }
     }
     // imwrite( "./GIF/"+std::to_string(cnt++)+".png", gif_write.convertgraphtoimage() );
 
-    cout << New.height << ' ' << New.width << ' '<<negative_count<<' '<<check_negative<<'\n';
-    // New.convertgraphtoimage();
-    return New;
+    cout << g.height << ' ' << g.width << ' '<<negative_count<<' '<<check_negative<<'\n';
+    // g.convertgraphtoimage();
+    // return g;
 }
 
-graph remove_h_seam(graph& g, int check_negative = 0)
+void remove_h_seam(graph& g, int check_negative = 0)
 {
     int m = g.width, n = g.height, i, j;
 
@@ -159,7 +160,7 @@ graph remove_h_seam(graph& g, int check_negative = 0)
         rowstart = g.pixelarray[rowstart].bottom;
     }
 
-    if(negative_count < check_negative)    return g;   //if no negative energy pixel exists, object has been removed!
+    if(negative_count < check_negative)    return;   //if no negative energy pixel exists, object has been removed!
 
     for (i = 0; i < n; i++)
         inner_dp[i][0] = pixel_energy[i][0];
@@ -201,63 +202,63 @@ graph remove_h_seam(graph& g, int check_negative = 0)
         pos[i] = cur;
     }
 
-    graph New, gif_write;
-    New = g;
-    gif_write = g;
-    New.height = New.height - 1;
-    cur = getptr(New, pos[m - 1], m - 1);
+    // graph New;
+    // New = g;
+    g.height = g.height - 1;
+    cur = getptr(g, pos[m - 1], m - 1);
     for (i = m - 1; i >= 0; --i)
     {
-        int Top = New.pixelarray[cur].top, Bottom = New.pixelarray[cur].bottom;
-        gif_write.pixelarray[cur].val[0] = gif_write.pixelarray[cur].val[1] = 0;
-        gif_write.pixelarray[cur].val[2] = 255;
+        removed_pixels.push_back(cur);
+
+        int Top = g.pixelarray[cur].top, Bottom = g.pixelarray[cur].bottom;
+        
         if (Top != -1)
         {
-            New.pixelarray[Top].bottom = Bottom;
-            New.pixelarray[Top].updated = false;
+            g.pixelarray[Top].bottom = Bottom;
+            g.pixelarray[Top].updated = false;
         }
         if (Bottom != -1)
         {
-            New.pixelarray[Bottom].top = Top;
-            New.pixelarray[Bottom].updated = false;
+            g.pixelarray[Bottom].top = Top;
+            g.pixelarray[Bottom].updated = false;
         }
         if (!i)
         {
-            if (cur == New.topleft)
-                New.topleft = New.pixelarray[cur].bottom;
+            if (cur == g.topleft)
+                g.topleft = g.pixelarray[cur].bottom;
             break;
         }
         if (pos[i] == pos[i - 1])
-            cur = New.pixelarray[cur].left;
+            cur = g.pixelarray[cur].left;
         else if (pos[i] > pos[i - 1])
         {
-            int Left = New.pixelarray[cur].left, Right = New.pixelarray[cur].top;
-            New.pixelarray[Left].right = Right;
-            New.pixelarray[Left].updated = false;
+            int Left = g.pixelarray[cur].left, Right = g.pixelarray[cur].top;
+            g.pixelarray[Left].right = Right;
+            g.pixelarray[Left].updated = false;
 
-            New.pixelarray[Right].left = Left;
-            New.pixelarray[Right].updated = false;
+            g.pixelarray[Right].left = Left;
+            g.pixelarray[Right].updated = false;
 
-            cur = New.pixelarray[New.pixelarray[cur].left].top;
+            cur = g.pixelarray[g.pixelarray[cur].left].top;
         }
         else
         {
-            int Left = New.pixelarray[cur].left, Right = New.pixelarray[cur].bottom;
-            New.pixelarray[Right].left = Left;
-            New.pixelarray[Right].updated = false;
+            int Left = g.pixelarray[cur].left, Right = g.pixelarray[cur].bottom;
+            g.pixelarray[Right].left = Left;
+            g.pixelarray[Right].updated = false;
 
-            New.pixelarray[Left].right = Right;
-            New.pixelarray[Left].updated = false;
+            g.pixelarray[Left].right = Right;
+            g.pixelarray[Left].updated = false;
 
-            cur = New.pixelarray[New.pixelarray[cur].left].bottom;
+            cur = g.pixelarray[g.pixelarray[cur].left].bottom;
         }
     }
     // imwrite( "./GIF/"+std::to_string(cnt++)+".png", gif_write.convertgraphtoimage() );
-    cout << New.height << ' ' << New.width << ' '<<negative_count<<' '<<check_negative<<'\n';
-    return New;
+    cout << g.height << ' ' << g.width << ' '<<negative_count<<' '<<check_negative<<'\n';
+    // return g;
 }
 
-graph insert_h_seam(graph& g)
+void insert_h_seam(graph& g)
 {
     // cout << "inserting horiz seam!" << endl;
     int m = g.width, n = g.height, i, j;
@@ -320,44 +321,44 @@ graph insert_h_seam(graph& g)
         pos[i] = cur;
     }
 
-    graph New;
-    New = g;
-    New.height = New.height + 1;
+    // graph New;
+    // New = g;
+    g.height = g.height + 1;
     // cout << "I am here!" << endl;
-    cur = getptr(New, pos[m - 1], m - 1);
+    cur = getptr(g, pos[m - 1], m - 1);
 
-    int index = New.pixelarray_size;
-    New.pixelarray.push_back(
-        pixel(New.pixelarray[cur].val[0], New.pixelarray[cur].val[1], New.pixelarray[cur].val[2]));
-    New.pixelarray_size++;
-    New.pixelarray[index].updated = false;
-    int Top = New.pixelarray[cur].top, Bottom = New.pixelarray[cur].bottom;
+    int index = g.pixelarray_size;
+    g.pixelarray.push_back(
+        pixel(g.pixelarray[cur].val[0], g.pixelarray[cur].val[1], g.pixelarray[cur].val[2]));
+    g.pixelarray_size++;
+    g.pixelarray[index].updated = false;
+    int Top = g.pixelarray[cur].top, Bottom = g.pixelarray[cur].bottom;
     // cout << "top=" << Top << " bottom= " << Bottom << "\n";
     for (i = m - 1; i >= 0; --i)
     {
         // cout<<"cur: "<<cur<<endl;
-        // cout<<"index: "<<index<<" matrix last index: "<<New.pixelarray.size()-1;
+        // cout<<"index: "<<index<<" matrix last index: "<<g.pixelarray.size()-1;
         // cout << "here1" << endl;
 
-        New.pixelarray[cur].bottom = index;
-        New.pixelarray[cur].updated = false;
+        g.pixelarray[cur].bottom = index;
+        g.pixelarray[cur].updated = false;
 
         if (Bottom != -1)
         {
-            New.pixelarray[Bottom].top = index;
-            New.pixelarray[Bottom].updated = false;
+            g.pixelarray[Bottom].top = index;
+            g.pixelarray[Bottom].updated = false;
         }
-        New.pixelarray[index].top = cur;
-        New.pixelarray[index].bottom = Bottom;
-        New.pixelarray[index].updated = false;
+        g.pixelarray[index].top = cur;
+        g.pixelarray[index].bottom = Bottom;
+        g.pixelarray[index].updated = false;
 
         if (!i)
         {
-            if (cur == New.topleft)
+            if (cur == g.topleft)
             {
                 // cout<<"true!"<<endl;
 
-                // New.topleft = New.pixelarray[cur].bottom;
+                // g.topleft = g.pixelarray[cur].bottom;
             }
             break;
         }
@@ -366,22 +367,22 @@ graph insert_h_seam(graph& g)
             // cout << "here2" << endl;
 
             int prevcur = cur;
-            cur = New.pixelarray[cur].left;
+            cur = g.pixelarray[cur].left;
             // make new pixel & set the corresponding right for it
-            Top = New.pixelarray[cur].top;
-            Bottom = New.pixelarray[cur].bottom;
-            New.pixelarray.push_back(pixel(New.pixelarray[cur].val[0], New.pixelarray[cur].val[1],
-                New.pixelarray[cur].val[2]));
-            New.pixelarray_size++;
+            Top = g.pixelarray[cur].top;
+            Bottom = g.pixelarray[cur].bottom;
+            g.pixelarray.push_back(pixel(g.pixelarray[cur].val[0], g.pixelarray[cur].val[1],
+                g.pixelarray[cur].val[2]));
+            g.pixelarray_size++;
 
-            New.pixelarray[index].left = index + 1;
-            New.pixelarray[index].updated = false;
+            g.pixelarray[index].left = index + 1;
+            g.pixelarray[index].updated = false;
 
-            New.pixelarray[index + 1].right = index;
-            New.pixelarray[index].updated = false;
+            g.pixelarray[index + 1].right = index;
+            g.pixelarray[index].updated = false;
 
-            New.modify(prevcur,0);
-            New.modify(index,2);
+            g.modify(prevcur,0);
+            g.modify(index,2);
             index++;
         }
         else if (pos[i] > pos[i - 1])
@@ -392,33 +393,33 @@ graph insert_h_seam(graph& g)
                 int prevcur = cur;
                 // cout << "oldcur" << cur << endl;
 
-                int nextleft = New.pixelarray[cur].left;
+                int nextleft = g.pixelarray[cur].left;
                 // cout << "nextleft" << nextleft << endl;
-                cur = New.pixelarray[New.pixelarray[cur].left].top;
+                cur = g.pixelarray[g.pixelarray[cur].left].top;
                 // cout << "i: " << i << endl;
                 // cout << "posi" << pos[i] << "posi-1" << pos[i - 1] << endl;
                 // cout << "newcur" << cur << endl;
                 // cout << "top" << Top << "Bottom" << Bottom;
-                Top = New.pixelarray[cur].top;
-                Bottom = New.pixelarray[cur].bottom;
-                New.pixelarray.push_back(pixel(New.pixelarray[cur].val[0],
-                    New.pixelarray[cur].val[1], New.pixelarray[cur].val[2]));
+                Top = g.pixelarray[cur].top;
+                Bottom = g.pixelarray[cur].bottom;
+                g.pixelarray.push_back(pixel(g.pixelarray[cur].val[0],
+                    g.pixelarray[cur].val[1], g.pixelarray[cur].val[2]));
 
-                New.pixelarray[prevcur].left = index + 1;
-                New.pixelarray[prevcur].updated = false;
+                g.pixelarray[prevcur].left = index + 1;
+                g.pixelarray[prevcur].updated = false;
 
-                New.pixelarray[index + 1].right = prevcur;
-                New.pixelarray[index + 1].updated = false;
+                g.pixelarray[index + 1].right = prevcur;
+                g.pixelarray[index + 1].updated = false;
 
-                New.pixelarray_size++;
+                g.pixelarray_size++;
 
-                New.pixelarray[index].left = nextleft;
-                New.pixelarray[index].updated = false;
+                g.pixelarray[index].left = nextleft;
+                g.pixelarray[index].updated = false;
 
-                New.pixelarray[nextleft].right = index;
-                New.pixelarray[nextleft].updated = false;
-                New.modify(prevcur,0);
-                New.modify(index,2);
+                g.pixelarray[nextleft].right = index;
+                g.pixelarray[nextleft].updated = false;
+                g.modify(prevcur,0);
+                g.modify(index,2);
                 index++;
             }
             catch (Exception e)
@@ -430,36 +431,36 @@ graph insert_h_seam(graph& g)
         {
             int prevcur = cur;
             // cout << "here4" << endl;
-            cur = New.pixelarray[New.pixelarray[cur].left].bottom;
+            cur = g.pixelarray[g.pixelarray[cur].left].bottom;
             int nextleft = cur;
             int prevbot = Bottom;
-            Top = New.pixelarray[cur].top;
-            Bottom = New.pixelarray[cur].bottom;
-            New.pixelarray.push_back(pixel(New.pixelarray[cur].val[0], New.pixelarray[cur].val[1],
-                New.pixelarray[cur].val[2]));
-            New.pixelarray_size++;
-            New.pixelarray[index + 1].right = prevbot;
-            New.pixelarray[index + 1].updated = false;
+            Top = g.pixelarray[cur].top;
+            Bottom = g.pixelarray[cur].bottom;
+            g.pixelarray.push_back(pixel(g.pixelarray[cur].val[0], g.pixelarray[cur].val[1],
+                g.pixelarray[cur].val[2]));
+            g.pixelarray_size++;
+            g.pixelarray[index + 1].right = prevbot;
+            g.pixelarray[index + 1].updated = false;
 
-            New.pixelarray[prevbot].left = index + 1;
-            New.pixelarray[prevbot].updated = false;
+            g.pixelarray[prevbot].left = index + 1;
+            g.pixelarray[prevbot].updated = false;
 
-            New.pixelarray[index].left = nextleft;
-            New.pixelarray[index].updated = false;
+            g.pixelarray[index].left = nextleft;
+            g.pixelarray[index].updated = false;
 
-            New.pixelarray[nextleft].right = index;
-            New.pixelarray[nextleft].updated = false;
-            New.modify(prevcur,0);
-            New.modify(index,2);
+            g.pixelarray[nextleft].right = index;
+            g.pixelarray[nextleft].updated = false;
+            g.modify(prevcur,0);
+            g.modify(index,2);
             index++;
         }
     }
-    cout << New.height << ' ' << New.width <<' '<<g.PENALTY<<'\n';
-    // New.convertgraphtoimage();
-    return New;
+    cout << g.height << ' ' << g.width <<' '<<g.PENALTY<<'\n';
+    // g.convertgraphtoimage();
+    // return g;
 }
 
-graph insert_v_seam(graph& g)
+void insert_v_seam(graph& g)
 {
     int m = g.width, n = g.height, i, j;
 
@@ -520,51 +521,51 @@ graph insert_v_seam(graph& g)
         pos[i] = cur;
     }
 
-    graph New;
-    New = g;
-    New.width = New.width + 1;
-    cur = getptr(New, n-1,pos[n - 1]);
+    // graph New;
+    // New = g;
+    g.width = g.width + 1;
+    cur = getptr(g, n-1,pos[n - 1]);
 
     //debug(1);
 
-    int index = New.pixelarray_size;
-    New.pixelarray.push_back(
-        pixel(New.pixelarray[cur].val[0], New.pixelarray[cur].val[1], New.pixelarray[cur].val[2]));
-    New.pixelarray_size++;
-    New.pixelarray[index].updated = false;
+    int index = g.pixelarray_size;
+    g.pixelarray.push_back(
+        pixel(g.pixelarray[cur].val[0], g.pixelarray[cur].val[1], g.pixelarray[cur].val[2]));
+    g.pixelarray_size++;
+    g.pixelarray[index].updated = false;
 
-    int Left = New.pixelarray[cur].left, Right = New.pixelarray[cur].right;
+    int Left = g.pixelarray[cur].left, Right = g.pixelarray[cur].right;
     // cout << "left=" << Left << " right= " << Right << "\n";
     for (i = n - 1; i >= 0; --i)
     {
         // cout<<"cur: "<<cur<<endl;
-        // cout<<"index: "<<index<<" matrix last index: "<<New.pixelarray.size()-1;
+        // cout<<"index: "<<index<<" matrix last index: "<<g.pixelarray.size()-1;
         // cout << "here1" << endl;
 
         //debug(2);
 
-        New.pixelarray[cur].right = index;
-        New.pixelarray[cur].updated = false;
+        g.pixelarray[cur].right = index;
+        g.pixelarray[cur].updated = false;
 
         if (Right != -1)
         {
-            New.pixelarray[Right].left = index;
-            New.pixelarray[Right].updated = false;
+            g.pixelarray[Right].left = index;
+            g.pixelarray[Right].updated = false;
         }
 
         //debug(3);
 
-        New.pixelarray[index].left = cur;
-        New.pixelarray[index].right = Right;
-        New.pixelarray[index].updated = false;
+        g.pixelarray[index].left = cur;
+        g.pixelarray[index].right = Right;
+        g.pixelarray[index].updated = false;
 
         if (!i)
         {
-            if (cur == New.topleft)
+            if (cur == g.topleft)
             {
                 // cout<<"true!"<<endl;
 
-                // New.topleft = New.pixelarray[cur].right;
+                // g.topleft = g.pixelarray[cur].right;
             }
             break;
         }
@@ -576,23 +577,23 @@ graph insert_v_seam(graph& g)
             // cout << "here2" << endl;
             //debug(5);
             int prevcur = cur;
-            cur = New.pixelarray[cur].top;
+            cur = g.pixelarray[cur].top;
             // make new pixel & set the corresponding bottom for it
             //debug(1000);
-            Left = New.pixelarray[cur].left;
+            Left = g.pixelarray[cur].left;
             //debug(2000);
-            Right = New.pixelarray[cur].right;
+            Right = g.pixelarray[cur].right;
             //debug(100);
-            New.pixelarray.push_back(pixel(New.pixelarray[cur].val[0], New.pixelarray[cur].val[1],
-                New.pixelarray[cur].val[2]));
+            g.pixelarray.push_back(pixel(g.pixelarray[cur].val[0], g.pixelarray[cur].val[1],
+                g.pixelarray[cur].val[2]));
             //debug(200);
-            New.pixelarray_size++;
-            New.pixelarray[index].top = index + 1;
-            New.pixelarray[index].updated = false;
-            New.pixelarray[index + 1].bottom = index;
-            New.pixelarray[index + 1].updated = false;
-            New.modify(prevcur,3);
-            New.modify(index,1);
+            g.pixelarray_size++;
+            g.pixelarray[index].top = index + 1;
+            g.pixelarray[index].updated = false;
+            g.pixelarray[index + 1].bottom = index;
+            g.pixelarray[index + 1].updated = false;
+            g.modify(prevcur,3);
+            g.modify(index,1);
             index++;
         }
         else if (pos[i] > pos[i - 1])
@@ -604,31 +605,31 @@ graph insert_v_seam(graph& g)
                 int prevcur = cur;
                 // cout << "oldcur" << cur << endl;
 
-                int nextleft = New.pixelarray[cur].top;
+                int nextleft = g.pixelarray[cur].top;
                 // cout << "nextleft" << nextleft << endl;
-                cur = New.pixelarray[New.pixelarray[cur].top].left;
+                cur = g.pixelarray[g.pixelarray[cur].top].left;
                 // cout << "i: " << i << endl;
                 // cout << "posi" << pos[i] << "posi-1" << pos[i - 1] << endl;
                 // cout << "newcur" << cur << endl;
                 // cout << "left" << Left << "Right" << Right;
-                Left = New.pixelarray[cur].left;
-                Right = New.pixelarray[cur].right;
-                New.pixelarray.push_back(pixel(New.pixelarray[cur].val[0],
-                    New.pixelarray[cur].val[1], New.pixelarray[cur].val[2]));
-                New.pixelarray[prevcur].top = index + 1;
-                New.pixelarray[prevcur].updated = false;
+                Left = g.pixelarray[cur].left;
+                Right = g.pixelarray[cur].right;
+                g.pixelarray.push_back(pixel(g.pixelarray[cur].val[0],
+                    g.pixelarray[cur].val[1], g.pixelarray[cur].val[2]));
+                g.pixelarray[prevcur].top = index + 1;
+                g.pixelarray[prevcur].updated = false;
 
-                New.pixelarray[index + 1].bottom = prevcur;
-                New.pixelarray[index + 1].updated = false;
+                g.pixelarray[index + 1].bottom = prevcur;
+                g.pixelarray[index + 1].updated = false;
 
-                New.pixelarray_size++;
-                New.pixelarray[index].top = nextleft;
-                New.pixelarray[index].updated = false;
+                g.pixelarray_size++;
+                g.pixelarray[index].top = nextleft;
+                g.pixelarray[index].updated = false;
 
-                New.pixelarray[nextleft].bottom = index;
-                New.pixelarray[nextleft].updated = false;
-                New.modify(prevcur,3);
-                New.modify(index,1);
+                g.pixelarray[nextleft].bottom = index;
+                g.pixelarray[nextleft].updated = false;
+                g.modify(prevcur,3);
+                g.modify(index,1);
 
                 index++;
             }
@@ -641,42 +642,43 @@ graph insert_v_seam(graph& g)
         {
             int prevcur = cur;
             // cout << "here4" << endl;
-            cur = New.pixelarray[New.pixelarray[cur].top].right;
+            cur = g.pixelarray[g.pixelarray[cur].top].right;
             int nextleft = cur;
             int prevbot = Right;
-            Left = New.pixelarray[cur].left;
-            Right = New.pixelarray[cur].right;
-            New.pixelarray.push_back(pixel(New.pixelarray[cur].val[0], New.pixelarray[cur].val[1],
-                New.pixelarray[cur].val[2]));
-            New.pixelarray_size++;
-            New.pixelarray[index + 1].bottom = prevbot;
-            New.pixelarray[index + 1].updated = false;
+            Left = g.pixelarray[cur].left;
+            Right = g.pixelarray[cur].right;
+            g.pixelarray.push_back(pixel(g.pixelarray[cur].val[0], g.pixelarray[cur].val[1],
+                g.pixelarray[cur].val[2]));
+            g.pixelarray_size++;
+            g.pixelarray[index + 1].bottom = prevbot;
+            g.pixelarray[index + 1].updated = false;
 
-            New.pixelarray[prevbot].top = index + 1;
-            New.pixelarray[prevbot].updated = false;
+            g.pixelarray[prevbot].top = index + 1;
+            g.pixelarray[prevbot].updated = false;
 
 
-            New.pixelarray[index].top = nextleft;
-            New.pixelarray[index].updated = false;
+            g.pixelarray[index].top = nextleft;
+            g.pixelarray[index].updated = false;
 
-            New.pixelarray[nextleft].bottom = index;
-            New.pixelarray[nextleft].updated = false;
-            New.modify(prevcur,3);
-            New.modify(index,1);
+            g.pixelarray[nextleft].bottom = index;
+            g.pixelarray[nextleft].updated = false;
+            g.modify(prevcur,3);
+            g.modify(index,1);
 
             index++;
         }
     }
     //debug(5);
-    cout << New.height << ' ' << New.width << '\n';
-    // New.convertgraphtoimage();
-    return New;
+    cout << g.height << ' ' << g.width << '\n';
+    // g.convertgraphtoimage();
+    // return g;
 }
 Mat rescale(const Mat& image, double r_height, double r_width)
 {
+    removed_pixels.clear();
     int r = abs((int)(image.size().height * (1 - r_height)));
     int c = abs((int)(image.size().width * (1 - r_width)));
-    graph g(image);
+    graph g(image), original(image);
     cout<<r<<' '<<c<<'\n';
     int cnt = 0;
     if (r <= c)
@@ -692,26 +694,23 @@ Mat rescale(const Mat& image, double r_height, double r_width)
                     c--;
                     remaining--;
                     if(r_width > 1)
-                        g = insert_v_seam(g);
+                        insert_v_seam(g);
                     else
-                        g = remove_v_seam(g);
-                    // imwrite( "./GIF/"+std::to_string(cnt++)+".png", g.convertgraphtoimage() );
+                        remove_v_seam(g);
                 }
                 if(r_height > 1)
-                    g = insert_h_seam(g);
+                    insert_h_seam(g);
                 else
-                    g = remove_h_seam(g);
-                // imwrite( "./GIF/"+std::to_string(cnt++)+".png", g.convertgraphtoimage() );
+                    remove_h_seam(g);
                 remaining += q;
             }
         }
         for (int i = 0; i < c; i++)
         {
             if(r_width > 1)
-                g = insert_v_seam(g);
+                insert_v_seam(g);
             else
-                g = remove_v_seam(g);
-            // imwrite( "./GIF/"+std::to_string(cnt++)+".png", g.convertgraphtoimage() );
+                remove_v_seam(g);
         }
     }
     else
@@ -727,29 +726,34 @@ Mat rescale(const Mat& image, double r_height, double r_width)
                     r--;
                     remaining--;
                     if(r_height > 1)
-                        g = insert_h_seam(g);
+                        insert_h_seam(g);
                     else
-                        g = remove_h_seam(g);
-                    // imwrite( "./GIF/"+std::to_string(cnt++)+".png", g.convertgraphtoimage() );
+                        remove_h_seam(g);
                 }
 
                 if(r_width > 1)
-                    g = insert_v_seam(g);
+                    insert_v_seam(g);
                 else
-                    g = remove_v_seam(g);
-                // imwrite( "./GIF/"+std::to_string(cnt++)+".png", g.convertgraphtoimage() );
+                    remove_v_seam(g);
                 remaining += q;
             }
         }
         for (int i = 0; i < r; i++)
         {
             if(r_height > 1)
-                g = insert_h_seam(g);
+                insert_h_seam(g);
             else
-                g = remove_h_seam(g);
-            // imwrite( "./GIF/"+std::to_string(cnt++)+".png", g.convertgraphtoimage() );
+                remove_h_seam(g);
         }
     }
+
+    for(auto cur:removed_pixels)
+    {
+        original.pixelarray[cur].val[0] = original.pixelarray[cur].val[1] = 0;
+        original.pixelarray[cur].val[2] = 255;
+    }
+    imwrite( "./scarver/static/UploadedImages/original.jpg", original.convertgraphtoimage() );
+
     return g.convertgraphtoimage();
 }
 
@@ -798,15 +802,15 @@ Mat remove_object(const Mat& image, const Mat& mask)
     while(true)
     {
         if(maxr-minr>=maxc-minc)
-            g=remove_v_seam(g,1);
+            remove_v_seam(g,1);
         else
-            g=remove_h_seam(g,1);
+            remove_h_seam(g,1);
         if(g.height == r && g.width == c)   break;
         r=g.height, c=g.width;
     }
     while(g.height < r_orig)
-        g=insert_h_seam(g);
+        insert_h_seam(g);
     while(g.width < c_orig)
-        g=insert_v_seam(g);
+        insert_v_seam(g);
     return g.convertgraphtoimage();
 }
