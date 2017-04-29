@@ -11,7 +11,12 @@
     {% csrf_token %}
     <input type="hidden" name="image_name" value="{{image_name}}">
     <input type="hidden" id="jsonarray" name="retention_removal_array">
+    Select Segments:<br>
     <input type="checkbox" id="selectsegment" name="selectsegment">
+    <br>
+    Retain Faces:<br>
+    <input type="checkbox" id="retainfaces" name="retainfaces">
+    <br>
     <input type="text" id="brushsize" name="brushsize">
     <button id="submitimage">Submit Image</button>
   </form>
