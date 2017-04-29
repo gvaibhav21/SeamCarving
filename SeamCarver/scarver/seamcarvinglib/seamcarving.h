@@ -683,23 +683,24 @@ Mat rescale(const Mat& image, double r_height, double r_width, const Mat& mask=M
     int start = getptr(g, 0, 0), i,j;
     int height = mask.size().height, width = mask.size().width;
     cout<<height<<' '<<width<<'\n';
-    cin>>height;
-    for(i=0;i<height;i++)
+    if(height)
     {
-        int cur=start;
-        start = g.pixelarray[start].bottom;
-        for(j=0;j<width;j++)
+        for(i=0;i<height;i++)
         {
-            if(mask.at<uchar>(i,j) <50 )
+            int cur=start;
+            start = g.pixelarray[start].bottom;
+            for(j=0;j<width;j++)
             {
-                g.pixelarray[cur].penalty = -1e9;
+                if(mask.at<uchar>(i,j) <50 )
+                {
+                    g.pixelarray[cur].penalty = -1e9;
+                }
+                else if(mask.at<uchar>(i,j) > 200)
+                    g.pixelarray[cur].penalty = 1e7;
+                cur=g.pixelarray[cur].right;
             }
-            else if(mask.at<uchar>(i,j) > 200)
-                g.pixelarray[cur].penalty = 1e7;
-            cur=g.pixelarray[cur].right;
         }
     }
-    
 
     cout<<r<<' '<<c<<'\n';
     int cnt = 0;
@@ -769,13 +770,17 @@ Mat rescale(const Mat& image, double r_height, double r_width, const Mat& mask=M
         }
     }
 
-    for(auto cur:removed_pixels)
+    if(r_width <= 1 && r_height <= 1)
     {
-        original.pixelarray[cur].val[0] = original.pixelarray[cur].val[1] = 0;
-        original.pixelarray[cur].val[2] = 255;
-    }
-    imwrite( "./scarver/static/UploadedImages/original.jpg", original.convertgraphtoimage() );
 
+        for(auto cur:removed_pixels)
+        {
+            original.pixelarray[cur].val[0] = original.pixelarray[cur].val[1] = 0;
+            original.pixelarray[cur].val[2] = 255;
+        }
+
+        imwrite( "./scarver/static/UploadedImages/original.jpg", original.convertgraphtoimage() );
+    }
     return g.convertgraphtoimage();
 }
 
