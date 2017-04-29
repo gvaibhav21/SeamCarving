@@ -150,17 +150,36 @@ def objectRemSel(request):
         # TODO: take the image name and modified image from the request post
         # and call the object removal subroutine from cpp shared library
         image_name = request.POST.get('image_name',None)
+        retain_faces = request.POST.get('retainfaces',False)
+        # Debug
+        print retain_faces
         image_path = os.path.dirname(os.path.realpath(__file__))+os.sep+'static'\
         +os.sep+'UploadedImages'+os.sep+image_name
         myarray = request.POST.get('retention_removal_array',None)
         json_array = json.loads(myarray)
-        # print json_array
         data = np.asarray(list(json_array))
         shape = data.shape
         print shape
         for i in range(shape[0]):
             for j in range(shape[1]):
                 data[i][j] = data[i][j]*127 + 127
+
+        if(retain_faces):
+            print "Face retention selected"
+            face_cascade = cv2.CascadeClassifier(os.path.dirname(os.path.realpath(\
+            __file__))+os.sep+'haarcascade_frontalface_default.xml')
+            img = cv2.imread(image_path)
+            print "XXXXXXXXXXX"
+            print img.shape
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            print face_cascade.empty()
+            faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+            print "Number of faces detected: "+str(len(faces))
+            for (x,y,w,h) in faces:
+                for i in range(y,y+h):
+                    for j in range(x,x+w):
+                        if (data[i][j] > 50):
+                            data[i][j] = 255
         rescaled = data.astype(np.uint8)
         im = Image.fromarray(rescaled)
         save_path = os.path.dirname(os.path.realpath(__file__))+os.sep+'static'\
@@ -175,4 +194,4 @@ def objectRemSel(request):
         'image_name':image_name,
         }
         return render(request,'scarver/modifiedImage.html',context)
-    return HttpResponse("Something went wrong.")
+    return HttpResponse("Something went wrong.Stay tuned till we fix it.")

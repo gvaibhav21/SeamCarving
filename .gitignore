@@ -1,4 +1,4 @@
 *.pyc
 myenv/*
-./SeamCarver/scarver/static/UploadedImages/*
+SeamCarver/scarver/static/UploadedImages/*
 

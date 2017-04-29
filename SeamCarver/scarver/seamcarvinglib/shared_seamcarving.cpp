@@ -1,6 +1,6 @@
 #include <iostream>
 #include "seamcarving.h"
-// command: g++ -fPIC -shared -o shared_seamcarving.so shared_seamcarving.cpp `pkg-config --cflags --libs python` `pkg-config --cflags --libs opencv` -I/usr/local/include/opencv -I/usr/local/include/opencv2 -L/usr/local/lib/
+// command: g++ -O2 -std=c++11 -fPIC -shared -o shared_seamcarving.so shared_seamcarving.cpp `pkg-config --cflags --libs python` `pkg-config --cflags --libs opencv` -I/usr/local/include/opencv -I/usr/local/include/opencv2 -L/usr/local/lib/
 extern "C" {
     void Rescale(char* filename, double r_height, double r_width)
     {
@@ -41,7 +41,7 @@ extern "C" {
 
 	    int pos = mask_filename.find_last_of(".");
 	    mask_filename = mask_filename.substr(0,pos)+"_gray"+mask_filename.substr(pos);
-	    
+
     	Mat image = imread(filename, CV_LOAD_IMAGE_COLOR);
     	Mat mask = imread(mask_filename, CV_LOAD_IMAGE_GRAYSCALE);
 
