@@ -673,12 +673,34 @@ void insert_v_seam(graph& g)
     // g.convertgraphtoimage();
     // return g;
 }
-Mat rescale(const Mat& image, double r_height, double r_width)
+Mat rescale(const Mat& image, double r_height, double r_width, const Mat& mask=Mat())
 {
     removed_pixels.clear();
     int r = abs((int)(image.size().height * (1 - r_height)));
     int c = abs((int)(image.size().width * (1 - r_width)));
     graph g(image), original(image);
+    
+    int start = getptr(g, 0, 0), i,j;
+    int height = mask.size().height, width = mask.size().width;
+    cout<<height<<' '<<width<<'\n';
+    cin>>height;
+    for(i=0;i<height;i++)
+    {
+        int cur=start;
+        start = g.pixelarray[start].bottom;
+        for(j=0;j<width;j++)
+        {
+            if(mask.at<uchar>(i,j) <50 )
+            {
+                g.pixelarray[cur].penalty = -1e9;
+            }
+            else if(mask.at<uchar>(i,j) > 200)
+                g.pixelarray[cur].penalty = 1e7;
+            cur=g.pixelarray[cur].right;
+        }
+    }
+    
+
     cout<<r<<' '<<c<<'\n';
     int cnt = 0;
     if (r <= c)
@@ -757,23 +779,9 @@ Mat rescale(const Mat& image, double r_height, double r_width)
     return g.convertgraphtoimage();
 }
 
-Mat remove_object(const Mat& image, const Mat& mask)
+Mat remove_object(const Mat& image, const Mat& mask, int f)
 {
     graph g(image);
-    // int start = getptr(g, 0, 0),i,j;
-    // double energy_sum = 0;
-    // for(i=0;i<g.height;i++)
-    // {
-    //     int cur=start;
-    //     start = g.pixelarray[start].bottom;
-    //     for(j=0;j<g.width;j++)
-    //     {
-    //         energy_sum += g.getEnergy(cur);
-    //         cur=g.pixelarray[cur].right;
-    //     }
-    // }
-    // energy_sum /= (g.width*g.height);
-    // cout<<energy_sum<<'\n';
     int start = getptr(g, 0, 0), i,j;
     int height = mask.size().height, width = mask.size().width;
     int minr=1e8, minc=1e8, maxr=-1, maxc=-1;
@@ -783,7 +791,7 @@ Mat remove_object(const Mat& image, const Mat& mask)
         start = g.pixelarray[start].bottom;
         for(j=0;j<width;j++)
         {
-            if(mask.at<uchar>(i,j) == 0)
+            if(mask.at<uchar>(i,j) < 50)
             {
                 minr = min(minr,i);
                 maxr = max(maxr,i);
@@ -791,7 +799,7 @@ Mat remove_object(const Mat& image, const Mat& mask)
                 maxc = max(maxc,j);
                 g.pixelarray[cur].penalty = -1e9;
             }
-            else if(mask.at<uchar>(i,j) == 254)
+            else if(mask.at<uchar>(i,j) > 200)
                 g.pixelarray[cur].penalty = 1e7;
             cur=g.pixelarray[cur].right;
         }
@@ -801,7 +809,7 @@ Mat remove_object(const Mat& image, const Mat& mask)
     int r_orig = r, c_orig = c;
     while(true)
     {
-        if(maxr-minr>=maxc-minc)
+        if(f)
             remove_v_seam(g,1);
         else
             remove_h_seam(g,1);
@@ -813,4 +821,9 @@ Mat remove_object(const Mat& image, const Mat& mask)
     while(g.width < c_orig)
         insert_v_seam(g);
     return g.convertgraphtoimage();
+}
+
+pair<Mat,Mat> remove_object(const Mat& image, const Mat& mask)
+{
+    return make_pair(remove_object(image, mask, 0), remove_object(image, mask, 1));
 }
