@@ -66,13 +66,48 @@ def uploadImage(request):
         form = ImageUploadForm()
         return render(request,'scarver/uploadImage.html',{'uploadform':form})
 
+# TODO: implement the object retention capability from area marked by user
 def resizeImage(request):
     if request.method == 'POST':
         print request.POST
-    d_h = float(request.POST.get('desired_height_ratio',1.5))
+    d_h = float(request.POST.get('desired_height_ratio',1.0))
     d_w = float(request.POST.get('desired_width_ratio',1.0))
+    r_f = request.POST.get('retain_faces',False)
     image_name = request.POST.get('image_name',None)
-    image_path = os.path.dirname(os.path.realpath(__file__))+os.sep+'static'+os.sep+'UploadedImages'+os.sep+image_name
+    image_path = os.path.dirname(os.path.realpath(__file__))+os.sep+'static'+\
+    os.sep+'UploadedImages'+os.sep+image_name
+    data = cv2.imread(image_path,0)
+    h,w = data.shape
+    for i in range(h):
+        for j in range(w):
+            data[i][j] = 127
+
+    # Retain the faces if r_f
+    if(r_f):
+        print "Face retention selected"
+        face_cascade = cv2.CascadeClassifier(os.path.dirname(os.path.realpath(\
+        __file__))+os.sep+'haarcascade_frontalface_default.xml')
+        img = cv2.imread(image_path)
+        print "XXXXXXXXXXX"
+        print img.shape
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        print face_cascade.empty()
+        faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+        print "Number of faces detected: "+str(len(faces))
+        for (x,y,w,h) in faces:
+            for i in range(y,y+h):
+                for j in range(x,x+w):
+                    if (data[i][j] > 50):
+                        data[i][j] = 255
+
+    marked_array = data.astype(np.uint8)
+    im = Image.fromarray(marked_array)
+    save_path = os.path.dirname(os.path.realpath(__file__))+os.sep+'static'\
+    +os.sep+'UploadedImages'
+    pos = image_name.find('.')
+    save_path = save_path+os.sep+image_name[:pos]+"_gray"+image_name[pos:]
+    im.save(save_path)
+
     lib.Rescale(image_path,d_h,d_w)
     pos = image_name.find('.')
     context = {
@@ -84,7 +119,7 @@ def resizeImage(request):
 def magnifyObject(request):
     if request.method == "POST":
         print request.POST
-        d_m = float(request.POST.get('desired_magnification',1.25))
+        d_m = float(request.POST.get('desired_magnification',1.0))
         image_name = request.POST.get('image_name',None)
         image_path = os.path.dirname(os.path.realpath(__file__))+os.sep+'static'\
         +os.sep+'UploadedImages'+os.sep+image_name

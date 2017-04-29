@@ -1,7 +1,9 @@
-{% load static %}
+{% extends "base.html" %}
+{% block content %}
 <div class="modifiedImage">
   <img src="/static/UploadedImages/{{modified_image_name}}" alt="Modified Image">
 </div>
 <div class="originalImage">
   <img src="/static/UploadedImages/{{image_name}}" alt="Original Image">
 <div>
+  {% endblock %}

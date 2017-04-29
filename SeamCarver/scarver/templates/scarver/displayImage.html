@@ -1,23 +1,46 @@
-{% load static %}
-<img src="/static/UploadedImages/{{image_name}}" alt="My Image">
-<h1>Image Width: {{image_width}} px</h1>
-<h1>Image Height: {{image_height}} px</h1>
-<form action="{%url 'resizeImage' %}" method="POST">
-  {% csrf_token %}
-  <input type="hidden" name="image_name" value="{{image_name}}">
-  {{resizeform.as_p}}
-  <button type="submit" class="save btn btn-default">Resize</button>
-</form>
+{% extends "base.html" %}
+{% block content %}
+<div style = "margin:0 auto; max-width: 80%">
+  <div style = "margin:0 auto; display:block;">
+    <img src="/static/UploadedImages/{{image_name}}" style = "margin:0 auto; display:block;" alt="My Image">
+    <p style = "margin:10px;font-size:18px;text-align:center"><strong>Image Width: {{image_width}} px</strong></p>
+    <p style = "font-size:18px;text-align:center"><strong>Image Height: {{image_height}} px</strong></p>
 
-<form action="{%url 'magnifyObject' %}" method="POST">
-  {% csrf_token %}
-  <input type="hidden" name="image_name" value="{{image_name}}">
-  {{magnifyform.as_p}}
-  <button type="submit" class="save btn btn-default">Magnify</button>
-</form>
+  </div>
 
-<form action="{%url 'objectRemovalSelection'%}" method="POST">
-  {% csrf_token %}
-  <input type="hidden" name="image_name" value="{{image_name}}">
-  <button type="submit" class="save btn btn-default">Remove Object</button>
-</form>
+  <div class="container" style = "padding:20px;">
+  <div class="row">
+    <div class="col-sm-4">
+      <form action="{%url 'resizeImage' %}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="image_name" value="{{image_name}}">
+        {{resizeform.as_p}}
+        <button type="submit" class=" btn btn-primary">Resize</button>
+      </form>
+
+    </div>
+    <div class="col-sm-4">
+      <form action="{%url 'magnifyObject' %}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="image_name" value="{{image_name}}">
+        {{magnifyform.as_p}}
+        <button type="submit" class=" btn btn-primary">Magnify</button>
+      </form>
+
+    </div>
+
+
+    <div class="col-sm-4">
+      <form action="{%url 'objectRemovalSelection'%}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="image_name" value="{{image_name}}">
+        <button type="submit" class=" btn btn-primary">Remove Object</button>
+      </form></div>
+  </div>
+</div>
+
+
+
+
+</div>
+{% endblock %}
