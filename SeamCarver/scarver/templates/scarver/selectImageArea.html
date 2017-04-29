@@ -1,29 +1,46 @@
-{% load static %}
-<canvas id="canvas" width="300" height="227" style="float:left"></canvas>
-<canvas id="canvasorigimg" width="3" height="3" style="display:none"></canvas>
-<img id="imagelocation" style="display:none" src="/static/UploadedImages/{{image_segmented_name}}" alt="My Image">
-<img id="segimgloc" style="display:none" src="/static/UploadedImages/{{image_segmented_name}}" alt="Segmented Image">
-<div id="color" style="width:200px;height:500px;float:left"></div>
-<button id="selectred">Select Object for Removal</button>
-<button id="selectgreen">Select Object for Retention</button>
-<div id="formdiv" style="margin-top:180px">
-  <form id="imageform" action="{%url 'objectRemSel' %}" method="POST">
-    {% csrf_token %}
-    <input type="hidden" name="image_name" value="{{image_name}}">
-    <input type="hidden" id="jsonarray" name="retention_removal_array">
-    Select Segments:<br>
-    <input type="checkbox" id="selectsegment" name="selectsegment">
-    <br>
-    Retain Faces:<br>
-    <input type="checkbox" id="retainfaces" name="retainfaces">
-    <br>
-    <input type="text" id="brushsize" name="brushsize">
-    <button id="submitimage">Submit Image</button>
-  </form>
-</div>
-<div id="segmentedimageinfo">
-  <form id="segmentedform">
-    <input type="hidden" id="segmentinfo" name="segment_classes" value="{{segments_json}}">
-  </form>
-</div>
-<script type="text/javascript" src="/static/js/mark.js"></script>
+{% extends "base.html" %}
+{% block content %}
+<table style="width:100%">
+  <tr >
+    <td style="width:60%">
+
+      <canvas id="canvas"  width="300" height="227" style="float:left;margin:50px;"></canvas>
+      <canvas id="canvasorigimg" width="3" height="3" style="display:none"></canvas>
+      <img id="imagelocation" style="display:none" src="/static/UploadedImages/{{image_segmented_name}}" alt="My Image">
+      <img id="segimgloc" style="display:none" src="/static/UploadedImages/{{image_segmented_name}}" alt="Segmented Image">
+      <!-- <div id="color" style="width:200px;height:500px;float:left"></div> -->
+    </td>
+    <td style="width:40%">
+      <button class = "btn btn-danger"id="selectred">Select Object for Removal</button>
+      <button class="btn btn-success" id="selectgreen">Select Object for Retention</button>
+      <div id="formdiv">
+        <form id="imageform" action="{%url 'objectRemSel' %}" method="POST" style="line-height:40px;">
+          {% csrf_token %}
+          <input type="hidden" name="image_name" value="{{image_name}}">
+          <input type="hidden" id="jsonarray" name="retention_removal_array">
+          <input type="checkbox" id="selectsegment" name="selectsegment" >
+          Select Segments
+
+          <br>
+          <input type="checkbox" id="retainfaces" name="retainfaces">
+          Retain Faces
+
+          <br>
+          <label for="id_brushsize">BrushSize</label>
+          <input type="text" id="brushsize" name="brushsize">
+          <br>
+          <button class = "btn btn-primary" id="submitimage" style="margin:20 0; auto;display:block;">Submit Image</button>
+        </form>
+      </div>
+      <div id="segmentedimageinfo">
+        <form id="segmentedform">
+          <input type="hidden" id="segmentinfo" name="segment_classes" value="{{segments_json}}">
+        </form>
+      </div>
+      <script type="text/javascript" src="/static/js/mark.js"></script>
+
+    </td>
+  </tr>
+
+</table>
+{% endblock %}

@@ -1,7 +1,22 @@
-<h1>
-  <form method="POST" action="{% url 'uploadImage' %}" enctype="multipart/form-data">
+{% extends "base.html" %}
+{% block content %}
+
+<div style="margin:0 auto; width:80%;padding:20px;">
+  <form style="padding:20px" method="POST" action="{% url 'uploadImage' %}" enctype="multipart/form-data" class="form-inline">
     {% csrf_token %}
-    {{uploadform.as_p}}
-    <button type="submit" class="save btn btn-default">Upload</button>
+
+      <!-- {{uploadform.as_p}} -->
+    {% for field in uploadform %}
+    <div class="form-group">
+
+      {{ field.label_tag }} {{ field }}
+    </div>
+
+    </br>
+
+    {% endfor %}
+
+    <button style="margin:20px 0px"  type="submit" class="save btn btn-default">Upload</button>
   </form>
-</h1>
+</div>
+{% endblock %}

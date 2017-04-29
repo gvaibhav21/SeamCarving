@@ -2,6 +2,8 @@ from django import forms
 
 class ImageUploadForm(forms.Form):
     image = forms.ImageField()
+    # image.widget.attrs['class'] = 'form-control'
+
 
 class ImageResizeForm(forms.Form):
     desired_width_ratio = forms.FloatField()    #in pixels
