@@ -38,8 +38,9 @@ class ImageUploadForm(forms.Form):
 
 
 class ImageResizeForm(forms.Form):
-    desired_width_ratio = forms.FloatField()    #in pixels
-    desired_height_ratio = forms.FloatField()   #in pixels
+    desired_width_ratio = forms.FloatField(required=False)    #in pixels
+    desired_height_ratio = forms.FloatField(required=False)   #in pixels
+    retain_faces = forms.BooleanField(required=False)
 
 class MagnifyForm(forms.Form):
     desired_magnification = forms.FloatField()
