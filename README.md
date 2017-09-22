@@ -12,6 +12,10 @@ Some examples of results on various use-cases:
 
 ![](/Screenshots/Upscale.png?raw=true)
 
+**Prominent Content Amplification**
+
+![](/Screenshots/Amplify.png?raw=true)
+
 
 **Object Removal**
 
